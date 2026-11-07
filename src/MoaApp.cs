@@ -239,7 +239,7 @@ internal sealed class AppWindow : Form
         StartPosition = FormStartPosition.CenterScreen;
         Rectangle screen = Screen.PrimaryScreen.WorkingArea;
         Size = new Size(Math.Min(1500, screen.Width), Math.Min(960, screen.Height));
-        BackColor = Color.FromArgb(247, 243, 235);
+        BackColor = Color.FromArgb(235, 233, 239);
         web.DefaultBackgroundColor = BackColor;
         web.Dock = DockStyle.Fill;
         Controls.Add(web);
