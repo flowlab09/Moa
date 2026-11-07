@@ -56,18 +56,24 @@ if (-not (Test-Path $ico)) {
 
 $common = @('/nologo', '/target:winexe', '/platform:x64', '/optimize+', "/win32icon:$ico", "/win32manifest:$src\moa-app.manifest", '/r:System.Windows.Forms.dll', '/r:System.Drawing.dll', '/r:System.Core.dll')
 
+# The version lives in MoaSetup.cs; the app gets it from a generated file
+$version = [regex]::Match((Get-Content "$src\MoaSetup.cs" -Raw -Encoding UTF8), 'const string Version = "([\d.]+)"').Groups[1].Value
+if (-not $version) { throw 'Version not found in MoaSetup.cs' }
+$versionFile = "$build\MoaVersion.cs"
+Set-Content $versionFile "internal static class MoaVersion { internal const string Value = `"$version`"; }" -Encoding UTF8
+
 # App
 $app = "$dist\Moa.exe"
-& $csc @common "/out:$app" "/resource:$root\app\moa-board.html,moa.html" "/resource:$sdk\WebView2Loader.dll,WebView2Loader.dll" "/resource:$sdk\Microsoft.Web.WebView2.Core.dll,Microsoft.Web.WebView2.Core.dll" "/resource:$sdk\Microsoft.Web.WebView2.WinForms.dll,Microsoft.Web.WebView2.WinForms.dll" "/r:$sdk\Microsoft.Web.WebView2.Core.dll" "/r:$sdk\Microsoft.Web.WebView2.WinForms.dll" "$src\MoaApp.cs"
+& $csc @common "/out:$app" "/resource:$root\app\moa-board.html,moa.html" "/resource:$sdk\WebView2Loader.dll,WebView2Loader.dll" "/resource:$sdk\Microsoft.Web.WebView2.Core.dll,Microsoft.Web.WebView2.Core.dll" "/resource:$sdk\Microsoft.Web.WebView2.WinForms.dll,Microsoft.Web.WebView2.WinForms.dll" "/r:$sdk\Microsoft.Web.WebView2.Core.dll" "/r:$sdk\Microsoft.Web.WebView2.WinForms.dll" '/r:System.Web.Extensions.dll' "$src\MoaApp.cs" $versionFile
 if ($LASTEXITCODE -ne 0) { throw "App build failed: $LASTEXITCODE" }
 
 # Uninstaller, then the installer that carries both
-$version = [regex]::Match((Get-Content "$src\MoaSetup.cs" -Raw -Encoding UTF8), 'const string Version = "([\d.]+)"').Groups[1].Value
-if (-not $version) { throw 'Version not found in MoaSetup.cs' }
 $un = "$build\uninstall.exe"
 & $csc @common '/define:UNINSTALLER' "/out:$un" '/r:Microsoft.CSharp.dll' "$src\MoaSetup.cs"
 if ($LASTEXITCODE -ne 0) { throw "Uninstaller build failed: $LASTEXITCODE" }
 $setup = "$dist\Moa-$version-windows-x86_64-setup.exe"
 & $csc @common "/out:$setup" "/resource:$app,Moa.exe" "/resource:$un,uninstall.exe" "/resource:$assets\moa-logo.png,moa-logo.png" '/r:Microsoft.CSharp.dll' "$src\MoaSetup.cs"
 if ($LASTEXITCODE -ne 0) { throw "Setup build failed: $LASTEXITCODE" }
+# The screen file is uploaded with each release; installed copies pick it up on their own
+Copy-Item "$root\app\moa-board.html" "$dist\moa-$version.html"
 Write-Output $setup

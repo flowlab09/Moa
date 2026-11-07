@@ -1,8 +1,11 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -11,6 +14,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web.Script.Serialization;
 using System.Windows.Forms;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
@@ -222,17 +226,27 @@ internal sealed class AppWindow : Form
     private readonly string userData;
     private readonly string originals;
     private readonly string backups;
-    private readonly byte[] page;
+    private byte[] page;
     private readonly WebView2 web = new WebView2();
     private readonly TaskCompletionSource<bool> backupDone = new TaskCompletionSource<bool>();
     private bool closing;
+    private const int UpdateCheckEveryMs = 6 * 60 * 60 * 1000;
+    private readonly UiUpdater updater;
+    private readonly bool canUpdate;
+    private readonly System.Windows.Forms.Timer updateTimer = new System.Windows.Forms.Timer { Interval = UpdateCheckEveryMs };
+    private bool updatesEnabled, updateChecking;
+    private UiUpdater.Result pending;
 
     public AppWindow(string userData, string data, byte[] page)
     {
         this.userData = userData;
         originals = Path.Combine(data, "Originals");
         backups = Path.Combine(data, "Backups");
-        this.page = page;
+        updater = new UiUpdater(userData);
+        this.page = updater.LoadPage(page);
+        // 설치 프로그램으로 설치한 경우에만 스스로 업데이트한다.
+        canUpdate = File.Exists(Path.Combine(Path.GetDirectoryName(data), "uninstall.exe"));
+        updateTimer.Tick += (s, e) => CheckForUpdate();
         FormClosing += OnFormClosing;
         Text = "모아";
         Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath);
@@ -302,6 +316,22 @@ internal sealed class AppWindow : Form
         Close();
     }
 
+    // 새 화면 파일을 받아 두고 알린다. 누르면 바로, 아니면 다음에 켤 때 적용된다.
+    private async void CheckForUpdate()
+    {
+        if (updateChecking || closing || !updatesEnabled || !canUpdate) return;
+        updateChecking = true;
+        try
+        {
+            UiUpdater.Result result = await Task.Run(() => updater.Check());
+            if (result.State == UiUpdater.Ready) pending = result;
+            if (!closing && updatesEnabled && web.CoreWebView2 != null && result.State != UiUpdater.Nothing)
+                await web.CoreWebView2.ExecuteScriptAsync("window.moaUpdate&&moaUpdate('" + result.State + "','" + result.Version + "')");
+        }
+        catch (Exception error) { MoaApp.Log("업데이트 확인 실패: " + error.Message); }
+        finally { updateChecking = false; }
+    }
+
     private void OnPageMessage(object sender, CoreWebView2WebMessageReceivedEventArgs args)
     {
         if (!args.Source.StartsWith(MoaApp.Origin + "/", StringComparison.OrdinalIgnoreCase)) return;
@@ -309,6 +339,26 @@ internal sealed class AppWindow : Form
         if (message == "backup-done") backupDone.TrySetResult(true);
         else if (message == "open-originals") OpenFolder(originals);
         else if (message == "open-backups") OpenFolder(backups);
+        else if (message == "update-on")
+        {
+            updatesEnabled = true;
+            updateTimer.Start();
+            CheckForUpdate();
+        }
+        else if (message == "update-off")
+        {
+            updatesEnabled = false;
+            updateTimer.Stop();
+        }
+        else if (message == "update-apply" && pending != null)
+        {
+            page = pending.Page;
+            updater.CurrentVersion = pending.Version;
+            MoaApp.Log("새 화면 적용 " + pending.Version);
+            pending = null;
+            web.CoreWebView2.Reload();
+        }
+        else if (message == "update-page") OpenOutside(UiUpdater.ReleasesPage);
     }
 
     private static void OpenFolder(string folder)
@@ -475,5 +525,217 @@ internal sealed class AppWindow : Form
         if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps) return;
         try { Process.Start(new ProcessStartInfo(uri.AbsoluteUri) { UseShellExecute = true }); }
         catch (Exception) { }
+    }
+}
+
+// 릴리스에 함께 올린 화면 파일(moa-<버전>.html)을 받아 내장 화면 대신 쓴다.
+// 실행 파일은 받지도 실행하지도 않는다. 실행 파일을 바꿔야 하는 버전은 설치 파일을 받도록 안내만 한다.
+internal sealed class UiUpdater
+{
+    // 화면이 기대하는 프로그램 기능의 판. 프로그램 쪽 기능이 바뀌면 올리고, 화면 파일의 같은 값도 올린다.
+    internal const int HostApi = 1;
+    internal const string Nothing = "none", Ready = "ready", Installer = "installer";
+    internal const string ReleasesPage = "https://github.com/flowlab09/Moa/releases/latest";
+#if UPDATE_TEST
+    private static readonly string LatestUrl = Environment.GetEnvironmentVariable("MOA_TEST_LATEST");
+    private static readonly string DownloadPrefix = Environment.GetEnvironmentVariable("MOA_TEST_PREFIX");
+#else
+    private const string LatestUrl = "https://api.github.com/repos/flowlab09/Moa/releases/latest";
+    private const string DownloadPrefix = "https://github.com/flowlab09/Moa/releases/download/";
+#endif
+    private const int MaxPageBytes = 8 * 1024 * 1024;
+    private const int NetworkTimeoutMs = 30000;
+    private static readonly Regex VersionText = new Regex(@"^\d+\.\d+\.\d+$");
+    private static readonly Regex TagName = new Regex(@"^v(\d+\.\d+\.\d+)$");
+    private static readonly Regex Digest = new Regex(@"^sha256:([0-9a-f]{64})$");
+    private static readonly Regex HostMeta = new Regex("<meta name=\"moa-host\" content=\"(\\d+)\">");
+
+    internal sealed class Result
+    {
+        internal static readonly Result None = new Result { State = Nothing, Version = "" };
+        internal string State, Version;
+        internal byte[] Page;
+    }
+
+    private readonly string folder, infoFile;
+
+    // 지금 쓰는 화면의 버전. 받아 둔 화면을 쓰면 그 버전이 된다.
+    internal string CurrentVersion = MoaVersion.Value;
+
+    public UiUpdater(string appData)
+    {
+        folder = Path.Combine(appData, "Ui");
+        infoFile = Path.Combine(folder, "current.txt");
+    }
+
+    private string PagePath(string version) { return Path.Combine(folder, "moa-" + version + ".html"); }
+
+    // 받아 둔 화면이 온전하고 이 프로그램과 맞으며 내장 화면보다 새것일 때만 쓴다. 아니면 내장 화면.
+    internal byte[] LoadPage(byte[] builtIn)
+    {
+        string[] info = ReadInfo();
+        if (info == null) return builtIn;
+        if (new Version(info[0]) <= new Version(MoaVersion.Value))
+        {
+            Clear();
+            return builtIn;
+        }
+        byte[] stored = ReadStored(info[0], info[1]);
+        if (stored == null)
+        {
+            MoaApp.Log("받아 둔 화면을 쓸 수 없어 내장 화면을 씀 " + info[0]);
+            return builtIn;
+        }
+        CurrentVersion = info[0];
+        MoaApp.Log("받아 둔 화면 사용 " + info[0]);
+        return stored;
+    }
+
+    internal Result Check()
+    {
+        try
+        {
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            var release = new JavaScriptSerializer().Deserialize<Dictionary<string, object>>(ReadText(LatestUrl));
+            Match tag = TagName.Match(release["tag_name"] as string ?? "");
+            if (!tag.Success) return Result.None;
+            string latest = tag.Groups[1].Value;
+            if (new Version(latest) <= new Version(CurrentVersion)) return Result.None;
+
+            // 이미 받아 둔 같은 버전이 있으면 다시 받지 않는다.
+            string[] info = ReadInfo();
+            if (info != null && info[0] == latest)
+            {
+                byte[] stored = ReadStored(info[0], info[1]);
+                if (stored != null) return new Result { State = Ready, Version = latest, Page = stored };
+            }
+
+            string name = "moa-" + latest + ".html", url = null, sha = null;
+            foreach (Dictionary<string, object> asset in (ArrayList)release["assets"])
+            {
+                if ((asset["name"] as string) != name) continue;
+                url = asset["browser_download_url"] as string;
+                Match digest = Digest.Match(asset.ContainsKey("digest") ? asset["digest"] as string ?? "" : "");
+                if (digest.Success) sha = digest.Groups[1].Value;
+            }
+            // 화면 파일이 없으면 실행 파일까지 바뀐 버전이다. 해시를 검증할 수 없거나 다른 곳의 파일이면 받지 않는다.
+            if (url == null) return NeedsInstaller(latest, "화면 파일 없음");
+            if (sha == null || !url.StartsWith(DownloadPrefix, StringComparison.Ordinal))
+            {
+                MoaApp.Log("업데이트 건너뜀: 검증할 수 없는 화면 파일 " + latest);
+                return Result.None;
+            }
+            byte[] page = Download(url);
+            if (Sha(page) != sha)
+            {
+                MoaApp.Log("업데이트 건너뜀: 해시 불일치 " + latest);
+                return Result.None;
+            }
+            if (!Compatible(page)) return NeedsInstaller(latest, "프로그램 버전이 맞지 않음");
+
+            Directory.CreateDirectory(folder);
+            Clear();
+            WriteAtomic(PagePath(latest), page);
+            WriteAtomic(infoFile, Encoding.UTF8.GetBytes(latest + "|" + sha));
+            MoaApp.Log("새 화면 받음 " + latest);
+            return new Result { State = Ready, Version = latest, Page = page };
+        }
+        catch (Exception error)
+        {
+            // 인터넷이 끊긴 경우 등. 다음 확인 때 다시 시도한다.
+            MoaApp.Log("업데이트 확인 건너뜀: " + error.Message);
+            return Result.None;
+        }
+    }
+
+    private static Result NeedsInstaller(string version, string reason)
+    {
+        if (new Version(version) <= new Version(MoaVersion.Value)) return Result.None;
+        MoaApp.Log("새 설치 파일 필요 " + version + ": " + reason);
+        return new Result { State = Installer, Version = version };
+    }
+
+    private string[] ReadInfo()
+    {
+        try
+        {
+            if (!File.Exists(infoFile)) return null;
+            string[] info = File.ReadAllText(infoFile).Trim().Split('|');
+            return info.Length == 2 && VersionText.IsMatch(info[0]) && Regex.IsMatch(info[1], "^[0-9a-f]{64}$") ? info : null;
+        }
+        catch (Exception) { return null; }
+    }
+
+    private byte[] ReadStored(string version, string sha)
+    {
+        try
+        {
+            string path = PagePath(version);
+            if (!File.Exists(path)) return null;
+            byte[] page = File.ReadAllBytes(path);
+            return Sha(page) == sha && Compatible(page) ? page : null;
+        }
+        catch (Exception) { return null; }
+    }
+
+    private static bool Compatible(byte[] page)
+    {
+        Match host = HostMeta.Match(Encoding.UTF8.GetString(page, 0, Math.Min(page.Length, 4096)));
+        return host.Success && host.Groups[1].Value == HostApi.ToString();
+    }
+
+    private void Clear()
+    {
+        if (!Directory.Exists(folder)) return;
+        foreach (string file in Directory.GetFiles(folder))
+            try { File.Delete(file); } catch (Exception) { }
+    }
+
+    private static void WriteAtomic(string path, byte[] bytes)
+    {
+        string temp = path + ".tmp";
+        File.WriteAllBytes(temp, bytes);
+        if (File.Exists(path)) File.Delete(path);
+        File.Move(temp, path);
+    }
+
+    private static HttpWebRequest Request(string url)
+    {
+        var request = (HttpWebRequest)WebRequest.Create(url);
+        request.UserAgent = "Moa/" + MoaVersion.Value;
+        request.Accept = "application/vnd.github+json";
+        request.Timeout = NetworkTimeoutMs;
+        request.ReadWriteTimeout = NetworkTimeoutMs;
+        return request;
+    }
+
+    private static string ReadText(string url)
+    {
+        using (WebResponse response = Request(url).GetResponse())
+        using (var reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8))
+            return reader.ReadToEnd();
+    }
+
+    private static byte[] Download(string url)
+    {
+        using (WebResponse response = Request(url).GetResponse())
+        using (Stream source = response.GetResponseStream())
+        using (var target = new MemoryStream())
+        {
+            var buffer = new byte[81920];
+            int read;
+            while ((read = source.Read(buffer, 0, buffer.Length)) > 0)
+            {
+                if (target.Length + read > MaxPageBytes) throw new InvalidDataException("화면 파일이 너무 큽니다.");
+                target.Write(buffer, 0, read);
+            }
+            return target.ToArray();
+        }
+    }
+
+    private static string Sha(byte[] bytes)
+    {
+        using (var sha = SHA256.Create())
+            return BitConverter.ToString(sha.ComputeHash(bytes)).Replace("-", "").ToLowerInvariant();
     }
 }

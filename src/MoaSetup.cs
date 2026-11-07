@@ -50,7 +50,7 @@ internal sealed class Options
 internal static class MoaSetup
 {
     // 버전은 여기 한 곳만 고친다. 빌드 스크립트가 이 값으로 파일 이름을 만든다.
-    internal const string Version = "1.4.0";
+    internal const string Version = "1.4.1";
 
     [STAThread]
     private static int Main(string[] args)
