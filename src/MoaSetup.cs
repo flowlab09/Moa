@@ -50,7 +50,7 @@ internal sealed class Options
 internal static class MoaSetup
 {
     // 버전은 여기 한 곳만 고친다. 빌드 스크립트가 이 값으로 파일 이름을 만든다.
-    internal const string Version = "1.3.1";
+    internal const string Version = "1.4.0";
 
     [STAThread]
     private static int Main(string[] args)
@@ -190,7 +190,25 @@ internal static class MoaSetup
             key.SetValue("NoModify", 1, RegistryValueKind.DWord);
             key.SetValue("NoRepair", 1, RegistryValueKind.DWord);
         }
+        RefreshIcons();
     }
+
+    // 업데이트한 뒤 작업 표시줄과 바로가기가 예전 아이콘을 보여 주지 않게 한다. 실패해도 설치에는 지장이 없다.
+    private static void RefreshIcons()
+    {
+        try
+        {
+            string tool = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "ie4uinit.exe");
+            if (File.Exists(tool))
+                using (Process process = Process.Start(new ProcessStartInfo(tool, "-show") { CreateNoWindow = true, UseShellExecute = false }))
+                    if (process != null) process.WaitForExit(10000);
+            SHChangeNotify(0x08000000, 0, IntPtr.Zero, IntPtr.Zero);
+        }
+        catch (Exception) { }
+    }
+
+    [System.Runtime.InteropServices.DllImport("shell32.dll")]
+    private static extern void SHChangeNotify(int eventId, uint flags, IntPtr item1, IntPtr item2);
 
     private static void CopyFolder(string from, string to, string skip)
     {
