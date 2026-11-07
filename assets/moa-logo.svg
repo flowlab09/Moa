@@ -1,10 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
   <title id="title">모아 캔버스 로고</title>
-  <rect x="5" y="5" width="118" height="118" rx="30" fill="#ded0f7"/>
-  <rect x="24" y="27" width="51" height="42" rx="10" fill="#fff8ea" stroke="#493267" stroke-width="4"/>
-  <rect x="57" y="59" width="47" height="42" rx="10" fill="#c9b5ef" stroke="#493267" stroke-width="4"/>
-  <path d="M36 41h22M36 49h12M79 80h13M79 88h8" fill="none" stroke="#634984" stroke-width="3.5" stroke-linecap="round"/>
-  <path d="M57 57c12 0 3 16 15 16" fill="none" stroke="#493267" stroke-width="4" stroke-linecap="round"/>
-  <circle cx="57" cy="57" r="4.1" fill="#fff8ea" stroke="#493267" stroke-width="2.8"/>
-  <circle cx="72" cy="73" r="4.1" fill="#fff8ea" stroke="#493267" stroke-width="2.8"/>
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+      <stop stop-color="#392951"/>
+      <stop offset="1" stop-color="#21192f"/>
+    </linearGradient>
+  </defs>
+  <rect x="5" y="5" width="118" height="118" rx="29" fill="url(#tile)"/>
+  <path d="M32 83V52C32 44 41 40 47 46L59 59C62 62 66 62 69 59L81 46C87 40 96 44 96 52V83"
+        fill="none" stroke="#faf4e8" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="64" cy="79" r="5.5" fill="#c8adf5"/>
 </svg>
