@@ -145,6 +145,11 @@ main{width:100%;flex:1}
 .theme-swatch{position:relative;display:block;height:54px;border-radius:7px;overflow:hidden;border:1px solid #00000022}
 .theme-swatch i{position:absolute;left:0;top:0;bottom:0;width:34%}.theme-swatch b{position:absolute;left:44%;top:30%;width:44%;height:36%;border-radius:4px}
 .theme-foot{display:flex;justify-content:flex-end}
+.ask-view{width:min(420px,calc(100vw - 32px))}
+.ask-view p{margin:0 0 14px;white-space:pre-line;line-height:1.6}
+.ask-view input{display:block;width:100%;margin:0 0 14px;padding:8px 10px}
+.ask-actions{display:flex;justify-content:flex-end;gap:8px}
+.ask-view .primary.danger{background:transparent;color:var(--danger,#b4233c);border-color:var(--danger,#b4233c)}
 .sidebar-bottom .update-notice,.sidebar-bottom .update-notice:hover{display:block;width:100%;background:var(--accent);color:var(--on-accent,#1f1730);font-weight:700;text-align:left;line-height:1.35}
 html[data-theme=lavender]{--ui:#dfd6f3;--ui-raised:#cfc3ea;--ui-line:#bfb1de;--ui-text:#2a2140;--ui-sub:#54486e;--accent:#5b4490;--on-accent:#ffffff;--canvas:#f4f1fa;--ink:#2a2140;--ink-sub:#54486e;--edge:#bfb1de;--paper:#ffffff;--tone:#ece6fa;--dots:#bfb1de;--map:#a99bc9;--danger:#a3263f;--tone-violet:#ece6fa;--tone-mint:#e3f4ec;--tone-rose:#fbe9ef;--tone-amber:#fbf0dd;--item-ink:#2a2140}
 html[data-theme=mint]{--ui:#cbe9dd;--ui-raised:#b6dfcf;--ui-line:#a0d0bd;--ui-text:#14332b;--ui-sub:#3c5f55;--accent:#1f6f5c;--on-accent:#ffffff;--canvas:#f1f8f5;--ink:#14332b;--ink-sub:#3c5f55;--edge:#a0d0bd;--paper:#ffffff;--tone:#def3ea;--dots:#a0d0bd;--map:#8fbfae;--danger:#a3263f;--tone-violet:#ece6fa;--tone-mint:#def3ea;--tone-rose:#fbe9ef;--tone-amber:#fbf0dd;--item-ink:#14332b}
@@ -234,10 +239,35 @@ html[data-theme]{
 <label id="linkRow">링크 주소<input id="link" type="url" placeholder="https://…"><small>YouTube·Vimeo 및 HTTPS MP4·WebM 링크를 지원해요.</small></label><div id="inkRow" hidden><label><span id="inkLabel">손글씨</span> <small>마우스, 터치 또는 펜으로 직접 써보세요.</small></label><canvas id="ink" width="960" height="420" aria-label="손글씨 입력 영역"></canvas><button type="button" id="clearInk">손글씨 지우기</button></div>
 <p id="error" role="alert"></p>
 <div class="actions"><button type="button" id="delete">삭제</button><div><button type="button" id="cancel">취소</button><button class="primary" id="save">저장</button></div></div>
-</form></dialog><dialog id="assetView" class="asset-view"><button id="closeAsset">닫기</button><div id="assetContent"></div></dialog><dialog id="themeView"><h2>테마</h2><p>누르면 바로 바뀌고, 다음에 켤 때도 유지됩니다. 내 항목의 색은 그대로입니다.</p><div id="themeGrid" class="theme-grid"></div><div class="theme-foot"><button id="closeTheme" type="button">닫기</button></div></dialog><dialog id="moveView"><form id="moveForm" method="dialog"><h2>폴더로 이동</h2><p id="moveName"></p><label>이동할 곳<select id="moveTarget"></select></label><div class="actions"><span></span><div><button type="button" id="moveCancel">취소</button><button class="primary" id="moveConfirm">이동</button></div></div></form></dialog><dialog id="trashView"><h2>캔버스 휴지통</h2><p>복원하면 내용과 배치가 함께 돌아옵니다. 영구 삭제는 되돌릴 수 없어요.</p><ul id="trashList" class="trash-list"></ul><div class="trash-foot"><button id="emptyTrash" class="trash-danger">휴지통 비우기</button><button id="closeTrash">닫기</button></div></dialog><dialog id="storyView"><h2>컷 순서</h2><p id="storyTotal"></p><ol id="storyList" class="story-list"></ol><button id="closeStory" type="button">닫기</button></dialog>
+</form></dialog><dialog id="assetView" class="asset-view"><button id="closeAsset">닫기</button><div id="assetContent"></div></dialog><dialog id="askView" class="ask-view" aria-labelledby="askText"><p id="askText"></p><input id="askInput" maxlength="80" aria-labelledby="askText"><div class="ask-actions"><button id="askCancel" type="button">취소</button><button id="askOk" class="primary" type="button">확인</button></div></dialog><dialog id="themeView"><h2>테마</h2><p>누르면 바로 바뀌고, 다음에 켤 때도 유지됩니다. 내 항목의 색은 그대로입니다.</p><div id="themeGrid" class="theme-grid"></div><div class="theme-foot"><button id="closeTheme" type="button">닫기</button></div></dialog><dialog id="moveView"><form id="moveForm" method="dialog"><h2>폴더로 이동</h2><p id="moveName"></p><label>이동할 곳<select id="moveTarget"></select></label><div class="actions"><span></span><div><button type="button" id="moveCancel">취소</button><button class="primary" id="moveConfirm">이동</button></div></div></form></dialog><dialog id="trashView"><h2>캔버스 휴지통</h2><p>복원하면 내용과 배치가 함께 돌아옵니다. 영구 삭제는 되돌릴 수 없어요.</p><ul id="trashList" class="trash-list"></ul><div class="trash-foot"><button id="emptyTrash" class="trash-danger">휴지통 비우기</button><button id="closeTrash">닫기</button></div></dialog><dialog id="storyView"><h2>컷 순서</h2><p id="storyTotal"></p><ol id="storyList" class="story-list"></ol><button id="closeStory" type="button">닫기</button></dialog>
 <script>
 'use strict';
 const el=id=>document.getElementById(id);
+// 브라우저 기본 창(alert·confirm·prompt) 대신 쓰는 모아 창. 제목에 주소가 뜨지 않고 테마를 따른다.
+// 기본 창과 달리 코드를 멈추지 않으므로 확인·입력은 await 해서 쓴다. 여러 개가 겹치면 차례로 띄운다.
+let askQueue=Promise.resolve();
+function askDialog({text,input=null,ok='확인',cancel='취소',danger=false}){
+ const run=askQueue.then(()=>new Promise(resolve=>{
+   const view=el('askView'),field=el('askInput'),yes=el('askOk'),no=el('askCancel');
+   el('askText').textContent=text;
+   field.hidden=input===null;field.value=input??'';
+   yes.textContent=ok;yes.classList.toggle('danger',danger);
+   no.hidden=cancel===null;no.textContent=cancel??'';
+   const finish=value=>{view.oncancel=null;if(view.open)view.close();resolve(value)};
+   yes.onclick=()=>finish(input===null?true:field.value);
+   no.onclick=()=>finish(input===null?false:null);
+   view.oncancel=event=>{event.preventDefault();finish(cancel===null?true:input===null?false:null)};
+   field.onkeydown=event=>{if(event.key==='Enter'&&!event.isComposing){event.preventDefault();yes.click()}};
+   view.showModal();
+   // 되돌릴 수 없는 동작은 Enter 한 번으로 실행되지 않게 취소에 먼저 초점을 둔다
+   if(input===null)(danger?no:yes).focus();else{field.focus();field.select()}
+ }));
+ askQueue=run.catch(()=>{});
+ return run;
+}
+const notice=text=>askDialog({text,cancel:null});
+const ask=(text,options={})=>askDialog({text,...options});
+const askText=(text,value='')=>askDialog({text,input:value,ok:'확인'});
 const defaults=['아이디어','계획','레퍼런스','스토리보드'];
 const boards=[...defaults];
 const archivedBoards=new Set();
@@ -266,7 +296,7 @@ try{
  const saved=JSON.parse(localStorage.getItem('moa-folders'));
  if(Array.isArray(saved))folders=saved.filter(validFolder).map(folder=>({id:folder.id,name:folder.name,open:folder.open!==false,boards:folder.boards.filter(name=>boards.includes(name))}));
 }catch{}
-function saveFolders(){try{localStorage.setItem('moa-folders',JSON.stringify(folders))}catch{alert('폴더 변경 사항을 저장하지 못했어요.')}}
+function saveFolders(){try{localStorage.setItem('moa-folders',JSON.stringify(folders))}catch{notice('폴더 변경 사항을 저장하지 못했어요.')}}
 function folderOf(name){return folders.find(folder=>folder.boards.includes(name))||null}
 function customBoards(){return boards.filter(name=>!defaults.includes(name))}
 function saveBoardNames(){
@@ -419,7 +449,7 @@ function editTextBlock(node,card,block){
    const latest=cards.find(item=>item.id===card.id)||card;
    const blocks=latest.blocks?.length?latest.blocks:[block];
    try{await put({...latest,body:'',blocks:blocks.map(item=>item.id===block.id?{...item,text:input.value.trim()}:item),updated:Date.now()})}
-   catch{save.disabled=false;alert('블록을 저장하지 못했어요.')}
+   catch{save.disabled=false;notice('블록을 저장하지 못했어요.')}
  };
  editor.append(input,save,cancel);node.replaceWith(editor);input.focus();input.select();
 }
@@ -436,7 +466,7 @@ function renderBlocks(article,card){
        const latest=cards.find(item=>item.id===card.id)||card;
        input.disabled=true;
        try{await put({...latest,blocks:latest.blocks.map(item=>item.id===block.id?{...item,checked:input.checked}:item),updated:Date.now()})}
-       catch{input.checked=!input.checked;input.disabled=false;alert('할 일을 저장하지 못했어요.')}
+       catch{input.checked=!input.checked;input.disabled=false;notice('할 일을 저장하지 못했어요.')}
      };
      line.append(input,textNode);content.append(line);continue;
    }
@@ -496,7 +526,7 @@ el('alignSelection').onclick=async()=>{
  try{
    await transaction('readwrite',store=>{for(const card of selected)store.put({...card,...geometry(card),x:left,updated:Date.now()})});
    await reload();
- }catch{alert('정렬을 저장하지 못했어요.')}
+ }catch{notice('정렬을 저장하지 못했어요.')}
 };
 async function copyCards(selected){
  const ids=new Map(selected.map(card=>[card.id,newId()]));
@@ -505,7 +535,7 @@ async function copyCards(selected){
  try{
    await transaction('readwrite',store=>{for(const card of copies)store.put(card)});
    selection=new Set(copies.map(card=>card.id));await reload();
- }catch{alert('복제하지 못했어요.')}
+ }catch{notice('복제하지 못했어요.')}
 }
 el('duplicateSelection').onclick=()=>copyCards(cards.filter(card=>selection.has(card.id)));
 const hostView=globalThis.chrome?.webview;
@@ -595,13 +625,13 @@ function addPdfPreview(article,card,remote){
      const url=await urlFor(true);
      if(!box.isConnected){if(pdfUrls.delete(url))URL.revokeObjectURL(url);return}
      box.replaceChildren(frame(url));
-   }catch{alert('PDF를 열지 못했어요. 원본 폴더 연결을 확인해 주세요.')}
+   }catch{notice('PDF를 열지 못했어요. 원본 폴더 연결을 확인해 주세요.')}
    finally{open.disabled=false}
  };
  expand.onclick=async()=>{
    expand.disabled=true;
    try{const url=await urlFor(false);el('assetContent').replaceChildren(frame(url));el('assetView').showModal()}
-   catch{alert('PDF를 열지 못했어요. 원본 폴더 연결을 확인해 주세요.')}
+   catch{notice('PDF를 열지 못했어요. 원본 폴더 연결을 확인해 주세요.')}
    finally{expand.disabled=false}
  };
  if(!remote){
@@ -611,7 +641,7 @@ function addPdfPreview(article,card,remote){
        const url=URL.createObjectURL(await cardPdf(card));
        const link=make('a','');link.href=url;link.download=card.asset?.name||card.title+'.pdf';link.click();
        setTimeout(()=>URL.revokeObjectURL(url),30000);
-     }catch{alert('PDF 원본을 열지 못했어요.')}
+     }catch{notice('PDF 원본을 열지 못했어요.')}
    };
    actions.append(expand,download);
  }else actions.append(expand);
@@ -653,13 +683,13 @@ function updateFolder(){
 el('folder').onclick=async()=>{
  if(hostFolder&&folder===hostFolder){hostView.postMessage('open-originals');return}
  if(typeof globalThis.showDirectoryPicker!=='function'){
-   alert('원본 폴더 연결은 Windows 또는 Mac의 Chrome·Edge에서 이용할 수 있어요. 이 브라우저에서도 이미지와 손글씨는 저장할 수 있습니다.');return;
+   notice('원본 폴더 연결은 Windows 또는 Mac의 Chrome·Edge에서 이용할 수 있어요. 이 브라우저에서도 이미지와 손글씨는 저장할 수 있습니다.');return;
  }
  try{
    const selected=await globalThis.showDirectoryPicker(folderAccess);
    await transaction('readwrite',store=>store.put(selected,'folder'),'settings');
    folder=selected;updateFolder();
- }catch(error){if(error.name!=='AbortError')alert('원본 폴더를 연결하지 못했어요. Chrome 또는 Edge에서 사이트를 직접 열어 다시 시도해 주세요.')}
+ }catch(error){if(error.name!=='AbortError')notice('원본 폴더를 연결하지 못했어요. Chrome 또는 Edge에서 사이트를 직접 열어 다시 시도해 주세요.')}
 };
 async function ensureFolder(){
  if(!folder)throw Error('상단의 원본 폴더 버튼으로 저장 폴더를 연결해 주세요.');
@@ -711,7 +741,7 @@ async function showOriginal(card){
    if(card.kind==='영상 파일'||card.kind==='오디오'){node.controls=true;node.playsInline=true}
    el('assetContent').replaceChildren(node);el('assetView').showModal();
  }catch(error){
-   alert(error.name==='NotFoundError'?'원본 파일이 있는 폴더를 다시 연결해 주세요.':error.message||'원본을 열지 못했어요.');
+   notice(error.name==='NotFoundError'?'원본 파일이 있는 폴더를 다시 연결해 주세요.':error.message||'원본을 열지 못했어요.');
  }finally{if(button)button.disabled=false}
 }
 el('closeAsset').onclick=()=>el('assetView').close();
@@ -765,7 +795,7 @@ async function saveStroke(line,path){
  for(const [x,y] of line){left=Math.min(left,x);right=Math.max(right,x);top=Math.min(top,y);bottom=Math.max(bottom,y)}
  const w=Math.max(4,right-left+pad*2),h=Math.max(4,bottom-top+pad*2);
  try{await put(freeItem('ink',{x:left-pad,y:top-pad,w,h,inkSize:[w,h],ink:[line.map(([x,y])=>roundPoint(x-left+pad,y-top+pad))]}))}
- catch{alert('손글씨를 저장하지 못했어요.')}
+ catch{notice('손글씨를 저장하지 못했어요.')}
  finally{path.remove()}
 }
 function beginInk(event){
@@ -841,7 +871,7 @@ async function toggleEdge(source,target){
  if(!card||!cards.some(item=>item.id===target&&item.board===card.board))return;
  const links=card.links||[];
  try{await put({...card,links:links.includes(target)?links.filter(id=>id!==target):[...links,target],updated:Date.now()})}
- catch{alert('연결선을 저장하지 못했어요.')}
+ catch{notice('연결선을 저장하지 못했어요.')}
 }
 function chooseConnection(id){
  if(!connecting){connecting=id;render();return}
@@ -1104,7 +1134,7 @@ viewport.onlostpointercapture=async event=>{
    await transaction('readwrite',store=>{for(const card of changes.values())store.put(card)});
    cards=cards.map(card=>changes.get(card.id)||card);visible=visible.map(card=>changes.get(card.id)||card);
  }
- catch{render();alert('카드 위치를 저장하지 못했어요.')}
+ catch{render();notice('카드 위치를 저장하지 못했어요.')}
 };
 viewport.addEventListener('wheel',event=>{
  if(event.target.closest('.canvas-card')&&event.shiftKey)return;
@@ -1137,11 +1167,11 @@ async function addPastedText(text,at,target){
    if(target&&target.kind!=='그룹'){await put({...target,blocks:[...blocksFor(target),block],updated:Date.now()});return}
    const point=at||viewCenter(-125,-60);
    await put({id:newId(),title,body:'',blocks:[block],image:'',board:active,kind:'글',status:statuses[0],x:Math.round(point.x),y:Math.round(point.y),w:300,z:topZ(),updated:Date.now()});
- }catch{alert('자료를 추가하지 못했어요.')}
+ }catch{notice('자료를 추가하지 못했어요.')}
 }
 function placeFile(file,at,target){
  const type=isPdf(file)?'pdf':imageTypes[file.type]?'image':audioTypes[file.type]?'audio':videoTypes[file.type]?'embed':'';
- if(!type){alert('이미지, PDF, MP4·WebM 또는 오디오 파일을 선택해 주세요.');return}
+ if(!type){notice('이미지, PDF, MP4·WebM 또는 오디오 파일을 선택해 주세요.');return}
  if(type==='image'&&!target){placeImage(file,at);return}
  if(type==='embed'&&!target&&hostFolder){placeVideo(file,at);return}
  if(target&&target.kind!=='그룹'||type==='audio'){
@@ -1227,9 +1257,9 @@ function folderNode(folder){
  button.onclick=()=>{folder.open=!folder.open;saveFolders();populateBoards()};
  const add=make('button','＋','board-act folder-add');add.title='이 폴더에 새 캔버스';add.setAttribute('aria-label',folder.name+'에 새 캔버스');add.onclick=()=>createBoard(folder);
  const rename=make('button','✎','board-act folder-rename');rename.title='폴더 이름 변경';rename.setAttribute('aria-label',folder.name+' 폴더 이름 변경');
- rename.onclick=()=>{const next=prompt('폴더 이름',folder.name)?.trim();if(!next||next===folder.name)return;if(!validBoardName(next)){alert('폴더 이름을 40자 이내로 입력해 주세요.');return}folder.name=next;saveFolders();populateBoards()};
+ rename.onclick=async()=>{const next=(await askText('폴더 이름',folder.name))?.trim();if(!next||next===folder.name)return;if(!validBoardName(next)){notice('폴더 이름을 40자 이내로 입력해 주세요.');return}folder.name=next;saveFolders();populateBoards()};
  const remove=make('button','×','board-act folder-delete');remove.title='폴더 삭제 (캔버스는 남습니다)';remove.setAttribute('aria-label',folder.name+' 폴더 삭제');
- remove.onclick=()=>{if(folder.boards.length&&!confirm('“'+folder.name+'” 폴더를 삭제할까요? 안의 캔버스는 지워지지 않고 폴더 밖으로 나옵니다.'))return;folders=folders.filter(item=>item!==folder);saveFolders();populateBoards()};
+ remove.onclick=async()=>{if(folder.boards.length&&!(await ask('“'+folder.name+'” 폴더를 삭제할까요? 안의 캔버스는 지워지지 않고 폴더 밖으로 나옵니다.',{ok:'폴더 삭제'})))return;folders=folders.filter(item=>item!==folder);saveFolders();populateBoards()};
  row.append(button,add,rename,remove);
  row.draggable=true;
  row.ondragstart=event=>{dragItem={folder:folder.id};event.dataTransfer.effectAllowed='move';event.dataTransfer.setData('application/x-moa-folder',folder.id);event.stopPropagation()};
@@ -1262,23 +1292,23 @@ function populateBoards(){
 }
 populateBoards();
 document.querySelector('.sidebar').addEventListener('click',()=>{if(tool!=='select')setTool('select')},true);
-function createBoard(folder){
+async function createBoard(folder){
  if(!db)return;
- const name=prompt('새 캔버스 이름')?.trim();
+ const name=(await askText('새 캔버스 이름'))?.trim();
  if(!name)return;
- if(!validBoardName(name)){alert('캔버스 이름을 40자 이내로 입력해 주세요.');return}
- if(archivedBoards.has(name)){alert('같은 이름의 캔버스가 휴지통에 있어요. 복원하거나 다른 이름을 입력해 주세요.');return}
+ if(!validBoardName(name)){notice('캔버스 이름을 40자 이내로 입력해 주세요.');return}
+ if(archivedBoards.has(name)){notice('같은 이름의 캔버스가 휴지통에 있어요. 복원하거나 다른 이름을 입력해 주세요.');return}
  if(boards.includes(name)){switchBoard(name);return}
  boards.push(name);
- try{saveBoardNames()}catch{boards.pop();alert('캔버스 이름을 저장하지 못했어요.');return}
+ try{saveBoardNames()}catch{boards.pop();notice('캔버스 이름을 저장하지 못했어요.');return}
  if(folder){folder.boards.push(name);folder.open=true;saveFolders()}
  populateBoards();switchBoard(name);
 }
 el('newCanvas').onclick=()=>createBoard(null);
-el('newFolder').onclick=()=>{
- const name=prompt('새 폴더 이름')?.trim();
+el('newFolder').onclick=async()=>{
+ const name=(await askText('새 폴더 이름'))?.trim();
  if(!name)return;
- if(!validBoardName(name)){alert('폴더 이름을 40자 이내로 입력해 주세요.');return}
+ if(!validBoardName(name)){notice('폴더 이름을 40자 이내로 입력해 주세요.');return}
  folders.push({id:newId(),name,open:true,boards:[]});saveFolders();populateBoards();
 };
 let moving=null;
@@ -1295,13 +1325,13 @@ el('moveForm').onsubmit=()=>{if(moving)moveBoardTo(moving,el('moveTarget').value
 nav.addEventListener('dragover',event=>{if(dragItem?.board){event.preventDefault();nav.classList.add('drop-target')}});
 nav.addEventListener('dragleave',event=>{if(!nav.contains(event.relatedTarget))nav.classList.remove('drop-target')});
 nav.addEventListener('drop',event=>{nav.classList.remove('drop-target');if(dragItem?.board){event.preventDefault();moveBoardTo(dragItem.board,null,null)}dragItem=null});
-function archiveBoard(name){
+async function archiveBoard(name){
  if(!db)return;
  const next=visibleBoards().find(item=>item!==name);
- if(!next){alert('마지막 캔버스입니다. 새 캔버스를 만든 뒤 휴지통으로 보낼 수 있어요.');return}
- if(!confirm('“'+name+'” 캔버스를 휴지통으로 보낼까요? 나중에 복원할 수 있어요.'))return;
+ if(!next){notice('마지막 캔버스입니다. 새 캔버스를 만든 뒤 휴지통으로 보낼 수 있어요.');return}
+ if(!(await ask('“'+name+'” 캔버스를 휴지통으로 보낼까요? 나중에 복원할 수 있어요.',{ok:'휴지통으로'})))return;
  archivedBoards.add(name);
- try{saveBoardNames()}catch{archivedBoards.delete(name);alert('휴지통 변경 사항을 저장하지 못했어요.');return}
+ try{saveBoardNames()}catch{archivedBoards.delete(name);notice('휴지통 변경 사항을 저장하지 못했어요.');return}
  document.querySelector('.storage').open=false;
  populateBoards();if(active===name)switchBoard(next);else render();
 }
@@ -1310,12 +1340,12 @@ el('renameCanvas').onclick=()=>renameBoard(active);
 async function renameBoard(name){
  if(!db)return;
  document.querySelector('.storage').open=false;
- const next=prompt('캔버스 이름',name)?.trim();
+ const next=(await askText('캔버스 이름',name))?.trim();
  if(!next||next===name)return;
- if(!validBoardName(next)){alert('캔버스 이름을 40자 이내로 입력해 주세요.');return}
- if(boards.includes(next)){alert('같은 이름의 캔버스가 이미 있어요.');return}
+ if(!validBoardName(next)){notice('캔버스 이름을 40자 이내로 입력해 주세요.');return}
+ if(boards.includes(next)){notice('같은 이름의 캔버스가 이미 있어요.');return}
  try{await quietWrite(store=>{for(const card of cards)if(card.board===name)store.put({...card,board:next})})}
- catch{alert('이름을 바꾸지 못했어요.');return}
+ catch{notice('이름을 바꾸지 못했어요.');return}
  boards[boards.indexOf(name)]=next;histories.delete(name);
  for(const folder of folders)folder.boards=folder.boards.map(item=>item===name?next:item);saveFolders();
  try{
@@ -1329,15 +1359,15 @@ async function renameBoard(name){
 async function deleteBoards(names){
  const doomed=new Set(names),count=cards.filter(card=>doomed.has(card.board)).length;
  const label=names.length===1?'“'+names[0]+'” 캔버스':'휴지통의 캔버스 '+names.length+'개';
- if(!confirm(label+'와 안에 있는 항목 '+count+'개를 영구 삭제할까요? 되돌릴 수 없어요. (원본 폴더의 파일은 지우지 않아요.)'))return;
+ if(!(await ask(label+'와 안에 있는 항목 '+count+'개를 영구 삭제할까요? 되돌릴 수 없어요. (원본 폴더의 파일은 지우지 않아요.)',{ok:'영구 삭제',danger:true})))return;
  try{await quietWrite(store=>{for(const card of cards)if(doomed.has(card.board))store.delete(card.id)})}
- catch{alert('삭제하지 못했어요.');return}
+ catch{notice('삭제하지 못했어요.');return}
  for(const name of names){
    boards.splice(boards.indexOf(name),1);archivedBoards.delete(name);histories.delete(name);
    for(const folder of folders)folder.boards=folder.boards.filter(item=>item!==name);
    try{localStorage.removeItem('moa-view-'+name)}catch{}
  }
- try{saveBoardNames()}catch{alert('캔버스 목록을 저장하지 못했어요.')}
+ try{saveBoardNames()}catch{notice('캔버스 목록을 저장하지 못했어요.')}
  saveFolders();
  populateBoards();await reload();renderTrash();
 }
@@ -1495,7 +1525,7 @@ function moveHandle(event){
 }
 async function finishHandle(ended){
  if(!ended.result)return;
- try{await put({...ended.card,...ended.result,updated:Date.now()})}catch{render();alert('크기를 저장하지 못했어요.')}
+ try{await put({...ended.card,...ended.result,updated:Date.now()})}catch{render();notice('크기를 저장하지 못했어요.')}
 }
 function moveCreate(event){
  if(gesture.create==='text')return;
@@ -1519,7 +1549,7 @@ async function finishCreate(ended){
  const line=type==='line'||type==='arrow';
  const fields=ended.fields||(line?lineBox([Math.round(at.x-80),Math.round(at.y)],[Math.round(at.x+80),Math.round(at.y)]):{x:Math.round(at.x-80),y:Math.round(at.y-55),w:160,h:110,fill:freeStyle.fill});
  const card=freeItem(type,fields);
- try{await put(card);selection=new Set([card.id]);updateSelection()}catch{alert('도형을 저장하지 못했어요.')}
+ try{await put(card);selection=new Set([card.id]);updateSelection()}catch{notice('도형을 저장하지 못했어요.')}
 }
 function eraseAt(event){
  const node=document.elementFromPoint(event.clientX,event.clientY)?.closest?.('.free-item');
@@ -1551,7 +1581,7 @@ function editFree(card,at){
      if(!card){if(value.trim())await put(freeItem('text',{x:Math.round(x),y:Math.round(y),w:0,autoW:true,fontSize:size,body:value,title,...box}))}
      else if(!value&&card.el==='text')await removeItems([card.id]);
      else await put({...card,...box,body:value,title:title||freeLabels[card.el],updated:Date.now()});
-   }catch{alert('글을 저장하지 못했어요.')}
+   }catch{notice('글을 저장하지 못했어요.')}
  };
  input.onkeydown=event=>{
    if(event.key==='Escape'){event.preventDefault();finish(false)}
@@ -1592,7 +1622,7 @@ async function placeImage(file,at){
    const ratio=Math.min(1,480/Math.max(picture.naturalWidth,picture.naturalHeight)),w=Math.max(12,Math.round(picture.naturalWidth*ratio)),h=Math.max(12,Math.round(picture.naturalHeight*ratio));
    const card=freeItem('image',{x:Math.round(spot.x-(at?0:w/2)),y:Math.round(spot.y-(at?0:h/2)),w,h,image,asset,title:file.name.replace(/\.[^.]+$/,'')||'이미지'});
    await put(card);selection=new Set([card.id]);updateSelection();
- }catch{alert(file.name+' 이미지를 넣지 못했어요.')}
+ }catch{notice(file.name+' 이미지를 넣지 못했어요.')}
 }
 async function placeVideo(file,at){
  const spot=at||viewCenter();
@@ -1607,7 +1637,7 @@ async function placeVideo(file,at){
    const ratio=Math.min(1,560/size[0],420/size[1]),w=Math.max(160,Math.round(size[0]*ratio)),h=Math.max(90,Math.round(w*size[1]/size[0]));
    const card=freeItem('video',{x:Math.round(spot.x-(at?0:w/2)),y:Math.round(spot.y-(at?0:h/2)),w,h,asset,title:file.name.replace(/\.[^.]+$/,'')||'영상'});
    await put(card);selection=new Set([card.id]);updateSelection();
- }catch(error){el('count').textContent=hintText();alert(error.message||(file.name+' 영상을 넣지 못했어요.'))}
+ }catch(error){el('count').textContent=hintText();notice(error.message||(file.name+' 영상을 넣지 못했어요.'))}
 }
 async function placeImages(files,at){
  const start=at||viewCenter(-200,-150);
@@ -1622,7 +1652,7 @@ async function removeItems(ids){
    });
    if(gone.has(connecting))connecting=null;
    await reload();showToast(gone.size+'개를 삭제했어요');
- }catch{alert('삭제하지 못했어요.')}
+ }catch{notice('삭제하지 못했어요.')}
 }
 function showToast(text){
  el('toastText').textContent=text;el('toast').hidden=false;
@@ -1645,14 +1675,14 @@ function stepHistory(from,to,side){
    const stack=historyFor(active),entry=stack[from].pop();
    if(!entry)return;
    try{await quietWrite(store=>{for(const item of entry){if(item[side])store.put(item[side]);else store.delete(item.id)}})}
-   catch{stack[from].push(entry);alert('되돌리지 못했어요.');return}
+   catch{stack[from].push(entry);notice('되돌리지 못했어요.');return}
    stack[to].push(entry);await reload();
  });
 }
 async function saveBatch(list){
  const now=Date.now();
  try{await transaction('readwrite',store=>{for(const card of list)store.put({...card,updated:now})});await reload()}
- catch{alert('변경 내용을 저장하지 못했어요.')}
+ catch{notice('변경 내용을 저장하지 못했어요.')}
 }
 function selectedCards(){return cards.filter(card=>selection.has(card.id))}
 async function applyStyle(change){
@@ -1798,7 +1828,7 @@ function renderTrash(){
    restore.setAttribute('aria-label',name+' 복원');
    restore.onclick=()=>{
      archivedBoards.delete(name);
-     try{saveBoardNames()}catch{archivedBoards.add(name);alert('캔버스를 복원하지 못했어요.');return}
+     try{saveBoardNames()}catch{archivedBoards.add(name);notice('캔버스를 복원하지 못했어요.');return}
      el('trashView').close();populateBoards();switchBoard(name);
    };
    const erase=make('button','영구 삭제','trash-danger'),actions=make('div','');
@@ -1883,7 +1913,7 @@ function render(){
    if(card.board==='계획'&&card.kind!=='그룹'){
      const state=make('button',card.status,card.status==='완료'?'done':'');
      state.title='클릭해서 다음 진행 상태로 변경';
-     state.onclick=async()=>{state.disabled=true;try{await put({...(cards.find(item=>item.id===card.id)||card),status:statuses[(statuses.indexOf(card.status)+1)%3]})}catch{alert('진행 상태를 저장하지 못했어요.')}finally{state.disabled=false}};
+     state.onclick=async()=>{state.disabled=true;try{await put({...(cards.find(item=>item.id===card.id)||card),status:statuses[(statuses.indexOf(card.status)+1)%3]})}catch{notice('진행 상태를 저장하지 못했어요.')}finally{state.disabled=false}};
      article.append(state);
    }
    if(card.body&&!Array.isArray(card.blocks)){const body=make('p',card.body,'body editable-block');body.title='더블클릭해서 수정';body.ondblclick=()=>editTextBlock(body,card,newBlock('text',card.body));article.append(body)}
@@ -2116,7 +2146,7 @@ el('form').onsubmit=async event=>{
    await transaction('readwrite',store=>store.put(card));
    savedOriginal=null;savedBlocks.length=0;
    el('editor').close();
-   await reload().catch(()=>alert('저장했어요. 카드를 보려면 새로고침해 주세요.'));
+   await reload().catch(()=>notice('저장했어요. 카드를 보려면 새로고침해 주세요.'));
    if(scene&&!editing&&active===card.board){
      const node=positions.get(card.id);
      if(node){focusNode(node);drawView();rememberView()}
@@ -2129,7 +2159,7 @@ el('form').onsubmit=async event=>{
  finally{el('save').disabled=false}
 };
 el('delete').onclick=async()=>{
- if(el('save').disabled||!editing||!confirm('이 카드를 삭제할까요?'))return;
+ if(el('save').disabled||!editing||!(await ask('이 카드를 삭제할까요?',{ok:'삭제',danger:true})))return;
  try{
    await transaction('readwrite',store=>{
      store.delete(editing.id);
@@ -2146,11 +2176,11 @@ el('export').onclick=async()=>{
  if(!db)return;
  try{
    const all=await transaction('readonly',store=>store.getAll());
-   if(all.some(card=>card.asset||card.blocks?.some(block=>block.asset))&&!confirm('이 백업에는 카드와 미리보기가 들어갑니다. 원본은 '+(folder===hostFolder&&folder?'MoaData 폴더의 Originals':'연결한 폴더')+'를 별도로 복사해 주세요. 계속할까요?'))return;
+   if(all.some(card=>card.asset||card.blocks?.some(block=>block.asset))&&!(await ask('이 백업에는 카드와 미리보기가 들어갑니다. 원본은 '+(folder===hostFolder&&folder?'MoaData 폴더의 Originals':'연결한 폴더')+'를 별도로 복사해 주세요. 계속할까요?',{ok:'계속'})))return;
    const url=URL.createObjectURL(new Blob([JSON.stringify(backupPayload(all))],{type:'application/json'}));
    const link=make('a','');link.href=url;link.download='moa-board-'+new Date().toISOString().slice(0,10)+'.json';link.click();
    setTimeout(()=>URL.revokeObjectURL(url),1000);
- }catch{alert('백업을 만들지 못했어요.')}
+ }catch{notice('백업을 만들지 못했어요.')}
 };
 el('import').onclick=()=>{if(db)el('backup').click()};
 function validFree(card){
@@ -2180,7 +2210,7 @@ el('backup').onchange=async()=>{
    if(!Array.isArray(archived)||!archived.every(name=>known.includes(name)))throw Error();
    const occupied=new Set(cards.map(card=>card.board));
    if(data.version!==1||!Array.isArray(data.cards)||!data.cards.every(card=>valid(card,known)))throw Error();
-   if(!confirm(data.cards.length+'개 카드를 가져올까요? 같은 카드가 있으면 더 최근 기록을 남깁니다.'))return;
+   if(!(await ask(data.cards.length+'개 카드를 가져올까요? 같은 카드가 있으면 더 최근 기록을 남깁니다.',{ok:'가져오기'})))return;
    await transaction('readwrite',store=>{for(const card of data.cards){const request=store.get(card.id);request.onsuccess=()=>{if(!request.result||request.result.updated<card.updated)store.put(card)}}});
    boards.splice(0,boards.length,...known);
    for(const folder of Array.isArray(data.folders)?data.folders.filter(validFolder):[]){
@@ -2191,7 +2221,7 @@ el('backup').onchange=async()=>{
    saveFolders();
    for(const name of archived)if(name!==active&&!occupied.has(name))archivedBoards.add(name);
    saveBoardNames();populateBoards();await reload();
- }catch{alert('복원할 수 없어요. 모아 보드에서 만든 백업 파일을 확인해 주세요.')}
+ }catch{notice('복원할 수 없어요. 모아 보드에서 만든 백업 파일을 확인해 주세요.')}
 };
 </script>
 </body>
