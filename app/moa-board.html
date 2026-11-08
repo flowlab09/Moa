@@ -55,7 +55,7 @@ dialog{background:#fffaf2;color:#362a45;border-color:#decfe7}dialog::backdrop{ba
 .free-item.selected{outline-width:1px;outline-offset:1px}.free-item[data-el=line].selected,.free-item[data-el=arrow].selected{outline:none}
 .free-text{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.35;min-height:1em}.free-item[data-auto] .free-text{max-width:720px}
 .free-image{display:block;width:100%;height:100%;pointer-events:none;border-radius:2px}
-.free-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}.free-svg *{vector-effect:non-scaling-stroke}.free-fill{pointer-events:all;cursor:move}.free-line-hit{stroke:transparent;stroke-width:14;fill:none;pointer-events:stroke;cursor:move}
+.free-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}.free-svg *{vector-effect:non-scaling-stroke}.free-fill{pointer-events:all;cursor:move}.free-line-hit{stroke:transparent;stroke-width:14;fill:none;pointer-events:stroke;cursor:move}.free-item[data-el=marker]{mix-blend-mode:multiply}html[data-theme=black] .free-item[data-el=marker]{mix-blend-mode:screen}.free-svg .free-marker{vector-effect:none}
 .free-shape-text{position:absolute;inset:6px;display:grid;place-items:center;text-align:center;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.3;pointer-events:none}
 .free-handle{position:absolute;width:var(--hs,10px);height:var(--hs,10px);margin:calc(var(--hs,10px)/-2) 0 0 calc(var(--hs,10px)/-2);background:#fff;border:1px solid #7b56b0;border-radius:2px;pointer-events:auto;touch-action:none;z-index:1}.free-handle[data-h=n],.free-handle[data-h=s]{cursor:ns-resize}.free-handle[data-h=e],.free-handle[data-h=w]{cursor:ew-resize}.free-handle[data-h=ne],.free-handle[data-h=sw]{cursor:nesw-resize}.free-handle[data-h=nw],.free-handle[data-h=se]{cursor:nwse-resize}.free-handle[data-h=from],.free-handle[data-h=to]{border-radius:50%;cursor:move}
 .free-editor{position:absolute;z-index:9;margin:0;padding:0;background:#fffdf7cc;border:0;border-radius:2px;outline:1px dashed #7b56b0;outline-offset:2px;resize:none;overflow:hidden;line-height:1.35;field-sizing:content;width:max-content;min-width:60px;min-height:0}.free-editor.in-shape{text-align:center;background:#fffdf7e6}.free-editor-grip{position:absolute;z-index:10;width:calc(var(--hs,10px)*1.4);height:calc(var(--hs,10px)*1.4);margin:calc(var(--hs,10px)*-.7) 0 0 calc(var(--hs,10px)*-.7);background:#fff;border:1px solid #7b56b0;border-radius:2px;cursor:nwse-resize;touch-action:none}
@@ -217,6 +217,7 @@ html[data-theme]{
     <button id="toolDiamond" aria-label="마름모 (D)" title="마름모 (D)" aria-pressed="false"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 9-9 9-9-9z"/></svg></button>
     <button id="toolLine" aria-label="선 (L)" title="선 (L)" aria-pressed="false"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5"/></svg></button>
     <button id="toolArrow" aria-label="화살표 (A)" title="화살표 (A)" aria-pressed="false"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5m-9 0h9v9"/></svg></button>
+    <button id="toolMarker" aria-label="형광펜 (H)" title="형광펜 (H) · 끌어서 곧게 칠하기" aria-pressed="false"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="m9 15-3 3h4l1.5-1.5M9 15l7.5-7.5a2.1 2.1 0 0 1 3 3L12 18M9 15l3 3"/><path d="M4 21h16" stroke-width="3" opacity=".45"/></svg></button>
     <button id="pen" aria-label="펜 (P)" title="펜 (P)" aria-pressed="false" disabled><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="m4 20 4.5-1 11-11a2.5 2.5 0 0 0-3.5-3.5l-11 11L4 20Zm10.5-14 3.5 3.5"/></svg><span id="penLabel">펜</span></button>
     <button id="toolEraser" aria-label="지우개 (E)" title="지우개 (E) · 끌어서 선·도형·손글씨 지우기" aria-pressed="false"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="m7 20-4-4a2 2 0 0 1 0-2.8L13.2 3a2 2 0 0 1 2.8 0l5 5a2 2 0 0 1 0 2.8L11.5 20H7Zm0-9.5 7 7M9 20h12"/></svg></button>
     <span class="dock-divider" aria-hidden="true"></span>
@@ -1372,16 +1373,21 @@ async function deleteBoards(names){
  populateBoards();await reload();renderTrash();
 }
 el('emptyTrash').onclick=()=>{if(archivedBoards.size)deleteBoards([...archivedBoards])};
-const freeLabels={video:'영상',text:'텍스트',rect:'사각형',ellipse:'원',diamond:'마름모',line:'선',arrow:'화살표',ink:'손글씨',image:'이미지'};
+const freeLabels={video:'영상',text:'텍스트',rect:'사각형',ellipse:'원',diamond:'마름모',line:'선',arrow:'화살표',marker:'형광펜',ink:'손글씨',image:'이미지'};
 const inkColors=['#2b2734','#6f539d','#2f7d6b','#c2455d','#c98a1e','#ffffff'];
-const freeStyle={color:inkColors[0],stroke:3,fill:false,fontSize:20};
-const toolHints={text:'클릭한 곳에 글을 씁니다',rect:'끌어서 사각형을 그립니다',ellipse:'끌어서 원을 그립니다',diamond:'끌어서 마름모를 그립니다',line:'끌어서 선을 긋습니다',arrow:'끌어서 화살표를 긋습니다',pen:'캔버스에 바로 씁니다 · Esc로 끝내기',eraser:'끌어서 선·도형·손글씨를 지웁니다'};
-const toolButtons={select:'toolSelect',text:'toolText',rect:'toolRect',ellipse:'toolEllipse',diamond:'toolDiamond',line:'toolLine',arrow:'toolArrow',pen:'pen',eraser:'toolEraser'};
+// 형광펜은 일반 선과 색·굵기를 따로 기억한다
+const markerColors=['#ffe14d','#8ee86b','#ff8ac4','#7cc8ff','#ffb057'],markerWidths=[10,16,24,32];
+const freeStyle={color:inkColors[0],stroke:3,fill:false,fontSize:20,markerColor:markerColors[0],markerStroke:16};
+function isLineLike(type){return type==='line'||type==='arrow'||type==='marker'}
+// 가로에서 6° 안쪽이면 가로로 맞춘다. 글줄에 반듯하게 칠하기 위해서다.
+function snapLevel(a,b){const dx=b[0]-a[0];return dx&&Math.abs(Math.atan2(b[1]-a[1],Math.abs(dx)))<=Math.PI/30?[b[0],a[1]]:b}
+const toolHints={text:'클릭한 곳에 글을 씁니다',rect:'끌어서 사각형을 그립니다',ellipse:'끌어서 원을 그립니다',diamond:'끌어서 마름모를 그립니다',line:'끌어서 선을 긋습니다',arrow:'끌어서 화살표를 긋습니다',marker:'끌어서 곧게 칠합니다 · 거의 가로면 반듯하게 맞춥니다',pen:'캔버스에 바로 씁니다 · Esc로 끝내기',eraser:'끌어서 선·도형·손글씨를 지웁니다'};
+const toolButtons={select:'toolSelect',text:'toolText',rect:'toolRect',ellipse:'toolEllipse',diamond:'toolDiamond',line:'toolLine',arrow:'toolArrow',marker:'toolMarker',pen:'pen',eraser:'toolEraser'};
 let tool='select',spaceDown=false,toastTimer=0,historyOff=false,writeSeq=0,historyQueue=Promise.resolve(),clip=[],clipMark='';
 const histories=new Map();
 function isFree(card){return card?.kind==='자유'}
 function topZ(){return cards.reduce((top,card)=>card.board===active&&card.z>top?card.z:top,2)+1}
-function freeItem(type,fields){return {id:newId(),kind:'자유',el:type,title:freeLabels[type],body:'',image:'',board:active,status:statuses[0],links:[],color:freeStyle.color,stroke:freeStyle.stroke,z:topZ(),updated:Date.now(),...fields}}
+function freeItem(type,fields){return {id:newId(),kind:'자유',el:type,title:freeLabels[type],body:'',image:'',board:active,status:statuses[0],links:[],color:type==='marker'?freeStyle.markerColor:freeStyle.color,stroke:type==='marker'?freeStyle.markerStroke:freeStyle.stroke,z:topZ(),updated:Date.now(),...fields}}
 function hintText(count=visible.length){
  if(tool!=='select')return toolHints[tool];
  if(connecting)return '연결할 카드의 ↗ 버튼을 누르세요';
@@ -1412,6 +1418,13 @@ function freeContent(card){
      const d=pathData(line);
      paper.append(svgNode('path',{d,fill:'none',...common}),svgNode('path',{d,class:'free-line-hit'}));
    }
+   return [paper];
+ }
+ if(card.el==='marker'){
+   // 끝이 각진 반투명 띠. 확대하면 함께 굵어져 글줄을 덮은 채로 있다.
+   const d='M '+card.from.join(' ')+' L '+card.to.join(' '),hit=svgNode('path',{d,class:'free-line-hit free-marker'});
+   hit.style.strokeWidth=Math.max(14,width)+'px';
+   paper.append(svgNode('path',{d,fill:'none',stroke:card.color||markerColors[0],'stroke-width':width,'stroke-linecap':'butt','stroke-opacity':.45,class:'free-marker'}),hit);
    return [paper];
  }
  if(card.el==='line'||card.el==='arrow'){
@@ -1469,7 +1482,7 @@ function freeNode(card){
 function clearHandles(node){if(node.handles){for(const handle of node.handles)handle.remove();node.handles=null}}
 function addHandles(node,card){
  clearHandles(node);
- const line=card.el==='line'||card.el==='arrow';
+ const line=isLineLike(card.el);
  const spots=line?{from:card.from,to:card.to}:{nw:['0%','0%'],n:['50%','0%'],ne:['100%','0%'],e:['100%','50%'],se:['100%','100%'],s:['50%','100%'],sw:['0%','100%'],w:['0%','50%']};
  node.handles=Object.entries(spots).map(([key,[left,top]])=>{
    const handle=make('div','','free-handle');handle.dataset.h=key;
@@ -1494,7 +1507,8 @@ function moveHandle(event){
  let result;
  if(handle==='from'||handle==='to'){
    const from=[card.x+card.from[0],card.y+card.from[1]],to=[card.x+card.to[0],card.y+card.to[1]];
-   const moved=handle==='from'?[Math.round(from[0]+dx),Math.round(from[1]+dy)]:[Math.round(to[0]+dx),Math.round(to[1]+dy)];
+   let moved=handle==='from'?[Math.round(from[0]+dx),Math.round(from[1]+dy)]:[Math.round(to[0]+dx),Math.round(to[1]+dy)];
+   if(card.el==='marker')moved=snapLevel(handle==='from'?to:from,moved);
    result=handle==='from'?lineBox(moved,to):lineBox(from,moved);
  }else{
    let left=box.x,top=box.y,right=box.x+box.w,bottom=box.y+box.h;
@@ -1532,7 +1546,10 @@ function moveCreate(event){
  const a=gesture.at,b=world(event.clientX,event.clientY);
  if(!gesture.draftNode){gesture.draftNode=make('article','','canvas-card free-item');surface.append(gesture.draftNode)}
  let fields;
- if(gesture.create==='line'||gesture.create==='arrow')fields=lineBox([Math.round(a.x),Math.round(a.y)],[Math.round(b.x),Math.round(b.y)]);
+ if(isLineLike(gesture.create)){
+   const start=[Math.round(a.x),Math.round(a.y)],end=[Math.round(b.x),Math.round(b.y)];
+   fields=lineBox(start,gesture.create==='marker'?snapLevel(start,end):end);
+ }
  else{
    let w=Math.abs(b.x-a.x),h=Math.abs(b.y-a.y);
    if(event.shiftKey)w=h=Math.max(w,h);
@@ -1546,7 +1563,7 @@ async function finishCreate(ended){
  ended.draftNode?.remove();
  setTool('select');
  if(type==='text'){editFree(null,at);return}
- const line=type==='line'||type==='arrow';
+ const line=isLineLike(type);
  const fields=ended.fields||(line?lineBox([Math.round(at.x-80),Math.round(at.y)],[Math.round(at.x+80),Math.round(at.y)]):{x:Math.round(at.x-80),y:Math.round(at.y-55),w:160,h:110,fill:freeStyle.fill});
  const card=freeItem(type,fields);
  try{await put(card);selection=new Set([card.id]);updateSelection()}catch{notice('도형을 저장하지 못했어요.')}
@@ -1685,16 +1702,31 @@ async function saveBatch(list){
  catch{notice('변경 내용을 저장하지 못했어요.')}
 }
 function selectedCards(){return cards.filter(card=>selection.has(card.id))}
+// 형광펜을 고르거나 형광펜만 선택했을 때는 색 견본과 굵기 목록이 형광펜용으로 바뀐다
+function markerContext(){
+ if(tool==='marker')return true;
+ const free=selectedCards().filter(isFree);
+ return tool==='select'&&free.length>0&&free.every(card=>card.el==='marker');
+}
 async function applyStyle(change){
- Object.assign(freeStyle,change);
+ const marker=markerContext();
+ Object.assign(freeStyle,marker?{...change.color&&{markerColor:change.color},...change.stroke&&{markerStroke:change.stroke}}:change);
  const chosen=selectedCards().filter(isFree);
  if(chosen.length)await saveBatch(chosen.map(card=>({...card,...change})));
  updateBar();
 }
-for(const color of inkColors){
- const swatch=make('button','','swatch');swatch.style.background=inkOf(color);swatch.dataset.color=color;swatch.setAttribute('aria-label','색상 '+color);
- swatch.onclick=()=>applyStyle({color});el('swatches').append(swatch);
+var paintedPalette='';// updateBar가 이 줄보다 먼저 불려도 되도록 var
+function paintPalette(marker){
+ if(paintedPalette===(marker?'marker':'ink'))return;
+ paintedPalette=marker?'marker':'ink';
+ el('swatches').replaceChildren(...(marker?markerColors:inkColors).map(color=>{
+   const swatch=make('button','','swatch');swatch.style.background=marker?color:inkOf(color);swatch.dataset.color=color;swatch.setAttribute('aria-label','색상 '+color);
+   swatch.onclick=()=>applyStyle({color});return swatch;
+ }));
+ const names=['가늘게','보통','굵게','아주 굵게'];
+ el('strokeWidth').replaceChildren(...(marker?markerWidths:[2,3,6,12]).map((value,index)=>{const option=make('option',names[index]);option.value=String(value);return option}));
 }
+paintPalette(false);
 el('fillToggle').onclick=()=>{const first=selectedCards().find(isFree);applyStyle({fill:!(first?first.fill:freeStyle.fill)})};
 el('strokeWidth').onchange=()=>applyStyle({stroke:Number(el('strokeWidth').value)});
 function bumpFont(delta){
@@ -1713,16 +1745,17 @@ el('lockSelection').onclick=()=>{const chosen=selectedCards(),locked=!chosen.eve
 el('deleteSelection').onclick=()=>removeItems([...selection]);
 function updateBar(){
  const chosen=cards.filter(card=>selection.has(card.id)),free=chosen.filter(isFree);
- const drawing=freeInk||['rect','ellipse','diamond','line','arrow','text'].includes(tool);
+ const drawing=freeInk||['rect','ellipse','diamond','line','arrow','marker','text'].includes(tool);
  el('selectionTools').hidden=!chosen.length&&!drawing;
  el('selectionActions').hidden=!chosen.length;
  el('freeStyles').hidden=!free.length&&!drawing;
  el('alignSelection').disabled=chosen.length<2;
  el('lockSelection').textContent=chosen.length&&chosen.every(card=>card.locked)?'잠금 해제':'잠금';
- const first=free[0],color=first?.color||freeStyle.color;
+ const marker=markerContext();paintPalette(marker);
+ const first=free[0],color=first?.color||(marker?freeStyle.markerColor:freeStyle.color);
  for(const swatch of el('swatches').children)swatch.setAttribute('aria-pressed',String(swatch.dataset.color===color));
  el('fillToggle').setAttribute('aria-pressed',String(Boolean(first?first.fill:freeStyle.fill)));
- el('strokeWidth').value=String(first?.stroke||freeStyle.stroke);
+ el('strokeWidth').value=String(first?.stroke||(marker?freeStyle.markerStroke:freeStyle.stroke));
 }
 function typing(target){return target.closest?.('input,textarea,select,video,audio,[contenteditable=true]')||document.querySelector('dialog[open]')}
 document.addEventListener('keyup',event=>{if(event.code==='Space'){spaceDown=false;viewport.classList.remove('spacing')}});
@@ -1742,7 +1775,7 @@ document.addEventListener('keydown',event=>{
    const step=event.shiftKey?10:1,dx=event.key==='ArrowLeft'?-step:event.key==='ArrowRight'?step:0,dy=event.key==='ArrowUp'?-step:event.key==='ArrowDown'?step:0;
    saveBatch(selectedCards().filter(card=>!card.locked).map(card=>({...card,x:card.x+dx,y:card.y+dy})));return;
  }
- const picked={v:'select',t:'text',r:'rect',o:'ellipse',d:'diamond',l:'line',a:'arrow',p:'pen',e:'eraser'}[key];
+ const picked={v:'select',t:'text',r:'rect',o:'ellipse',d:'diamond',l:'line',a:'arrow',h:'marker',p:'pen',e:'eraser'}[key];
  if(picked&&!event.shiftKey)setTool(picked);
 });
 function copySelection(event){
@@ -2184,7 +2217,7 @@ el('export').onclick=async()=>{
 };
 el('import').onclick=()=>{if(db)el('backup').click()};
 function validFree(card){
- return Object.hasOwn(freeLabels,card.el)&&card.w>=0&&card.w<=20000&&(card.h===undefined||(card.h>=0&&card.h<=20000))&&(card.color===undefined||/^#[0-9a-f]{6}$/i.test(card.color))&&(card.stroke===undefined||(card.stroke>0&&card.stroke<=50))&&(card.fontSize===undefined||(card.fontSize>=8&&card.fontSize<=300))&&(!['line','arrow'].includes(card.el)||[card.from,card.to].every(end=>Array.isArray(end)&&end.length===2&&end.every(Number.isFinite)));
+ return Object.hasOwn(freeLabels,card.el)&&card.w>=0&&card.w<=20000&&(card.h===undefined||(card.h>=0&&card.h<=20000))&&(card.color===undefined||/^#[0-9a-f]{6}$/i.test(card.color))&&(card.stroke===undefined||(card.stroke>0&&card.stroke<=50))&&(card.fontSize===undefined||(card.fontSize>=8&&card.fontSize<=300))&&(!isLineLike(card.el)||[card.from,card.to].every(end=>Array.isArray(end)&&end.length===2&&end.every(Number.isFinite)));
 }
 function valid(card,knownBoards=boards){
  if(card?.z!==undefined&&!Number.isFinite(card.z))return false;
