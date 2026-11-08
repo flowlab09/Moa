@@ -51,7 +51,7 @@ dialog{background:#fffaf2;color:#362a45;border-color:#decfe7}dialog::backdrop{ba
 
 .canvas-card .grip{cursor:nwse-resize}#viewport.dragging-item,#viewport.dragging-item *{user-select:none}#viewport.tooling,#viewport.tooling *{cursor:crosshair!important}#viewport.spacing,#viewport.spacing *{cursor:grab!important}
 .canvas-card.free-item{width:auto;padding:0;background:none;border:0;border-radius:0;box-shadow:none;color:inherit;cursor:move;user-select:none;overflow:visible;overflow-wrap:normal}
-.free-item[data-el=rect],.free-item[data-el=ellipse],.free-item[data-el=diamond],.free-item[data-el=line],.free-item[data-el=arrow],.free-item[data-el=ink]{pointer-events:none}
+.free-item[data-el=rect],.free-item[data-el=ellipse],.free-item[data-el=diamond],.free-item[data-el=line],.free-item[data-el=arrow],.free-item[data-el=marker],.free-item[data-el=ink]{pointer-events:none}
 .free-item.selected{outline-width:1px;outline-offset:1px}.free-item[data-el=line].selected,.free-item[data-el=arrow].selected{outline:none}
 .free-text{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.35;min-height:1em}.free-item[data-auto] .free-text{max-width:720px}
 .free-image{display:block;width:100%;height:100%;pointer-events:none;border-radius:2px}
@@ -153,6 +153,7 @@ main{width:100%;flex:1}
 .update-notice{margin:4px 0 6px;padding:11px 12px;border:1px solid var(--ui-line);border-radius:10px;background:var(--ui-raised);color:var(--ui-text);font-size:12.5px;line-height:1.5}
 .update-notice strong{display:block;font-size:13.5px;margin-bottom:4px}.update-notice p{margin:0;color:inherit;opacity:.85;word-break:keep-all;overflow-wrap:break-word}
 .sidebar-bottom #updateApply,.sidebar-bottom #updateApply:hover{justify-content:center;margin-top:10px;padding:7px 4px;font-size:12px;white-space:nowrap;letter-spacing:-.01em;border:1px solid var(--ui-line);background:var(--ui);color:var(--ui-text);font-weight:600;text-align:center;line-height:1.35}.sidebar-bottom #updateApply:hover{background:var(--ui-line)}
+@media(max-width:680px){.update-notice{display:flex;align-items:center;gap:8px;margin:0;padding:4px 8px}.update-notice strong{margin:0;white-space:nowrap}.update-notice p{display:none}.sidebar-bottom #updateApply,.sidebar-bottom #updateApply:hover{margin:0;padding:4px 8px;width:auto}}
 html[data-theme=lavender]{--ui:#dfd6f3;--ui-raised:#cfc3ea;--ui-line:#bfb1de;--ui-text:#2a2140;--ui-sub:#54486e;--accent:#5b4490;--on-accent:#ffffff;--canvas:#f4f1fa;--ink:#2a2140;--ink-sub:#54486e;--edge:#bfb1de;--paper:#ffffff;--tone:#ece6fa;--dots:#bfb1de;--map:#a99bc9;--danger:#a3263f;--tone-violet:#ece6fa;--tone-mint:#e3f4ec;--tone-rose:#fbe9ef;--tone-amber:#fbf0dd;--item-ink:#2a2140}
 html[data-theme=mint]{--ui:#cbe9dd;--ui-raised:#b6dfcf;--ui-line:#a0d0bd;--ui-text:#14332b;--ui-sub:#3c5f55;--accent:#1f6f5c;--on-accent:#ffffff;--canvas:#f1f8f5;--ink:#14332b;--ink-sub:#3c5f55;--edge:#a0d0bd;--paper:#ffffff;--tone:#def3ea;--dots:#a0d0bd;--map:#8fbfae;--danger:#a3263f;--tone-violet:#ece6fa;--tone-mint:#def3ea;--tone-rose:#fbe9ef;--tone-amber:#fbf0dd;--item-ink:#14332b}
 html[data-theme=peach]{--ui:#f8d8cb;--ui-raised:#f3c7b6;--ui-line:#ebb6a2;--ui-text:#40201a;--ui-sub:#6d4a40;--accent:#b4492c;--on-accent:#ffffff;--canvas:#fbf1ee;--ink:#40201a;--ink-sub:#6d4a40;--edge:#ebb6a2;--paper:#ffffff;--tone:#fce6dd;--dots:#ebb6a2;--map:#d9a896;--danger:#a3263f;--tone-violet:#ece6fa;--tone-mint:#e3f4ec;--tone-rose:#fce6dd;--tone-amber:#fbf0dd;--item-ink:#40201a}
@@ -1474,8 +1475,16 @@ function freeNode(card){
  node.dataset.id=card.id;if(card.locked)node.classList.add('locked');
  node.cardRef=card;paintFree(node,card);
  node.onpointerdown=event=>startCard(event,card,node,false);
- node.ondblclick=()=>{
+ node.ondblclick=event=>{
    const latest=cards.find(item=>item.id===card.id)||card;
+   if(latest.el==='marker'){
+     // 형광펜은 글 위에 칠하므로, 더블클릭은 아래에 있는 항목(글 수정 등)으로 넘긴다
+     node.style.visibility='hidden';
+     const below=document.elementFromPoint(event.clientX,event.clientY);
+     node.style.visibility='';
+     if(below&&!node.contains(below))below.dispatchEvent(new MouseEvent('dblclick',{bubbles:true,clientX:event.clientX,clientY:event.clientY}));
+     return;
+   }
    if(['text','rect','ellipse','diamond'].includes(latest.el)&&!latest.locked)editFree(latest);
    else if(latest.el==='image'&&latest.asset)showOriginal(latest);
  };
@@ -1713,7 +1722,8 @@ function markerContext(){
 async function applyStyle(change){
  const marker=markerContext();
  Object.assign(freeStyle,marker?{...change.color&&{markerColor:change.color},...change.stroke&&{markerStroke:change.stroke}}:change);
- const chosen=selectedCards().filter(isFree);
+ // 보이는 견본이 형광펜용이면 형광펜에만, 일반용이면 형광펜이 아닌 항목에만 적용한다
+ const chosen=selectedCards().filter(card=>isFree(card)&&(card.el==='marker')===marker);
  if(chosen.length)await saveBatch(chosen.map(card=>({...card,...change})));
  updateBar();
 }
