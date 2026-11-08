@@ -234,7 +234,7 @@ internal sealed class AppWindow : Form
     private readonly UiUpdater updater;
     private readonly bool canUpdate;
     private readonly System.Windows.Forms.Timer updateTimer = new System.Windows.Forms.Timer { Interval = UpdateCheckEveryMs };
-    private bool updatesEnabled, updateChecking;
+    private bool updatesEnabled, updateChecking, manualCheck;
     private UiUpdater.Result pending;
 
     public AppWindow(string userData, string data, byte[] page)
@@ -317,19 +317,35 @@ internal sealed class AppWindow : Form
     }
 
     // 새 화면 파일을 받아 두고 알린다. 누르면 바로, 아니면 다음에 켤 때 적용된다.
-    private async void CheckForUpdate()
+    // manual: 설정 창의 '업데이트 확인'. 자동 업데이트가 꺼져 있어도 확인하고, 결과(최신·실패 포함)를 화면에 알린다.
+    private async void CheckForUpdate(bool manual = false)
     {
-        if (updateChecking || closing || !updatesEnabled || !canUpdate) return;
+        if (manual) manualCheck = true;
+        if (updateChecking || closing) return;
+        if (!canUpdate || (!manualCheck && !updatesEnabled))
+        {
+            if (manualCheck) await ReportCheck(UiUpdater.Result.Failed);
+            return;
+        }
         updateChecking = true;
         try
         {
             UiUpdater.Result result = await Task.Run(() => updater.Check());
             if (result.State == UiUpdater.Ready) pending = result;
-            if (!closing && updatesEnabled && web.CoreWebView2 != null && result.State != UiUpdater.Nothing)
+            if (manualCheck) await ReportCheck(result);
+            else if (!closing && updatesEnabled && web.CoreWebView2 != null && (result.State == UiUpdater.Ready || result.State == UiUpdater.Installer))
                 await web.CoreWebView2.ExecuteScriptAsync("window.moaUpdate&&moaUpdate('" + result.State + "','" + result.Version + "')");
         }
         catch (Exception error) { MoaApp.Log("업데이트 확인 실패: " + error.Message); }
         finally { updateChecking = false; }
+    }
+
+    private async Task ReportCheck(UiUpdater.Result result)
+    {
+        manualCheck = false;
+        string state = result.State == UiUpdater.Nothing ? "latest" : result.State;
+        if (!closing && web.CoreWebView2 != null)
+            await web.CoreWebView2.ExecuteScriptAsync("window.moaUpdateChecked&&moaUpdateChecked('" + state + "','" + result.Version + "')");
     }
 
     private void OnPageMessage(object sender, CoreWebView2WebMessageReceivedEventArgs args)
@@ -359,6 +375,8 @@ internal sealed class AppWindow : Form
             web.CoreWebView2.Reload();
         }
         else if (message == "update-page") OpenOutside(UiUpdater.ReleasesPage);
+        else if (message == "update-check") CheckForUpdate(true);
+        else if (message == "info") web.CoreWebView2.ExecuteScriptAsync("window.moaInfo&&moaInfo('" + updater.CurrentVersion + "')");
     }
 
     private static void OpenFolder(string folder)
@@ -534,14 +552,17 @@ internal sealed class UiUpdater
 {
     // 화면이 기대하는 프로그램 기능의 판. 프로그램 쪽 기능이 바뀌면 올리고, 화면 파일의 같은 값도 올린다.
     internal const int HostApi = 1;
-    internal const string Nothing = "none", Ready = "ready", Installer = "installer";
+    internal const string Nothing = "none", Ready = "ready", Installer = "installer", Error = "error";
     internal const string ReleasesPage = "https://github.com/flowlab09/Moa/releases/latest";
 #if UPDATE_TEST
     private static readonly string LatestUrl = Environment.GetEnvironmentVariable("MOA_TEST_LATEST");
     private static readonly string DownloadPrefix = Environment.GetEnvironmentVariable("MOA_TEST_PREFIX");
+    private static readonly string RawPrefix = Environment.GetEnvironmentVariable("MOA_TEST_RAW");
 #else
     private const string LatestUrl = "https://api.github.com/repos/flowlab09/Moa/releases/latest";
     private const string DownloadPrefix = "https://github.com/flowlab09/Moa/releases/download/";
+    // 릴리스 파일 받기가 실패할 때 쓰는 같은 파일(태그의 app/moa-board.html). 해시는 릴리스 파일과 같아야 한다.
+    private const string RawPrefix = "https://raw.githubusercontent.com/flowlab09/Moa/";
 #endif
     private const int MaxPageBytes = 8 * 1024 * 1024;
     private const int NetworkTimeoutMs = 30000;
@@ -553,6 +574,7 @@ internal sealed class UiUpdater
     internal sealed class Result
     {
         internal static readonly Result None = new Result { State = Nothing, Version = "" };
+        internal static readonly Result Failed = new Result { State = Error, Version = "" };
         internal string State, Version;
         internal byte[] Page;
     }
@@ -623,13 +645,19 @@ internal sealed class UiUpdater
             if (sha == null || !url.StartsWith(DownloadPrefix, StringComparison.Ordinal))
             {
                 MoaApp.Log("업데이트 건너뜀: 검증할 수 없는 화면 파일 " + latest);
-                return Result.None;
+                return Result.Failed;
             }
-            byte[] page = Download(url);
+            byte[] page;
+            try { page = Download(url); }
+            catch (WebException error)
+            {
+                MoaApp.Log("화면 파일 받기 실패, 저장소에서 다시 받음: " + error.Message);
+                page = Download(RawPrefix + "v" + latest + "/app/moa-board.html");
+            }
             if (Sha(page) != sha)
             {
                 MoaApp.Log("업데이트 건너뜀: 해시 불일치 " + latest);
-                return Result.None;
+                return Result.Failed;
             }
             if (!Compatible(page)) return NeedsInstaller(latest, "프로그램 버전이 맞지 않음");
 
@@ -644,7 +672,7 @@ internal sealed class UiUpdater
         {
             // 인터넷이 끊긴 경우 등. 다음 확인 때 다시 시도한다.
             MoaApp.Log("업데이트 확인 건너뜀: " + error.Message);
-            return Result.None;
+            return Result.Failed;
         }
     }
 

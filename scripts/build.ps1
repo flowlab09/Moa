@@ -62,9 +62,13 @@ if (-not $version) { throw 'Version not found in MoaSetup.cs' }
 $versionFile = "$build\MoaVersion.cs"
 Set-Content $versionFile "internal static class MoaVersion { internal const string Value = `"$version`"; }" -Encoding UTF8
 
+# The screen file with LF line endings, so it matches the file GitHub serves from the tag (raw fallback)
+$page = "$build\moa.html"
+[IO.File]::WriteAllText($page, [IO.File]::ReadAllText("$root\app\moa-board.html").Replace("`r`n", "`n"), (New-Object Text.UTF8Encoding $false))
+
 # App
 $app = "$dist\Moa.exe"
-& $csc @common "/out:$app" "/resource:$root\app\moa-board.html,moa.html" "/resource:$sdk\WebView2Loader.dll,WebView2Loader.dll" "/resource:$sdk\Microsoft.Web.WebView2.Core.dll,Microsoft.Web.WebView2.Core.dll" "/resource:$sdk\Microsoft.Web.WebView2.WinForms.dll,Microsoft.Web.WebView2.WinForms.dll" "/r:$sdk\Microsoft.Web.WebView2.Core.dll" "/r:$sdk\Microsoft.Web.WebView2.WinForms.dll" '/r:System.Web.Extensions.dll' "$src\MoaApp.cs" $versionFile
+& $csc @common "/out:$app" "/resource:$page,moa.html" "/resource:$sdk\WebView2Loader.dll,WebView2Loader.dll" "/resource:$sdk\Microsoft.Web.WebView2.Core.dll,Microsoft.Web.WebView2.Core.dll" "/resource:$sdk\Microsoft.Web.WebView2.WinForms.dll,Microsoft.Web.WebView2.WinForms.dll" "/r:$sdk\Microsoft.Web.WebView2.Core.dll" "/r:$sdk\Microsoft.Web.WebView2.WinForms.dll" '/r:System.Web.Extensions.dll' "$src\MoaApp.cs" $versionFile
 if ($LASTEXITCODE -ne 0) { throw "App build failed: $LASTEXITCODE" }
 
 # Uninstaller, then the installer that carries both
@@ -75,5 +79,5 @@ $setup = "$dist\Moa-$version-windows-x86_64-setup.exe"
 & $csc @common "/out:$setup" "/resource:$app,Moa.exe" "/resource:$un,uninstall.exe" "/resource:$assets\moa-logo.png,moa-logo.png" '/r:Microsoft.CSharp.dll' "$src\MoaSetup.cs"
 if ($LASTEXITCODE -ne 0) { throw "Setup build failed: $LASTEXITCODE" }
 # The screen file is uploaded with each release; installed copies pick it up on their own
-Copy-Item "$root\app\moa-board.html" "$dist\moa-$version.html"
+Copy-Item $page "$dist\moa-$version.html"
 Write-Output $setup

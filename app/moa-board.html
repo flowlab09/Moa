@@ -145,6 +145,12 @@ main{width:100%;flex:1}
 .theme-swatch{position:relative;display:block;height:54px;border-radius:7px;overflow:hidden;border:1px solid #00000022}
 .theme-swatch i{position:absolute;left:0;top:0;bottom:0;width:34%}.theme-swatch b{position:absolute;left:44%;top:30%;width:44%;height:36%;border-radius:4px}
 .theme-foot{display:flex;justify-content:flex-end}
+.settings-view{width:min(560px,calc(100vw - 32px));max-height:calc(100vh - 32px);overflow:auto;box-sizing:border-box}
+.settings-section{padding:14px 0;border-top:1px solid color-mix(in srgb,currentColor 14%,transparent)}.settings-section:first-of-type{border-top:0;padding-top:4px}
+.settings-section h3{margin:0 0 8px;font-size:14px}.settings-section p{margin:0 0 10px;line-height:1.55;word-break:keep-all;overflow-wrap:break-word;opacity:.85}
+.settings-card{padding:12px 14px;border:1px solid color-mix(in srgb,currentColor 16%,transparent);border-radius:10px;margin-bottom:10px}.settings-card strong{display:block;margin-bottom:4px;font-size:15px}
+.settings-row{display:flex;flex-wrap:wrap;gap:8px}.settings-check{display:flex;flex-direction:row;align-items:center;gap:8px;margin:0 0 6px}.settings-check input{width:auto;margin:0}
+.settings-link{border:0;background:none;padding:2px 0;text-decoration:underline;cursor:pointer;opacity:.85}.settings-view .theme-grid{margin:0}
 .ask-view{width:min(420px,calc(100vw - 32px))}
 .ask-view p{margin:0 0 14px;white-space:pre-line;line-height:1.6}
 .ask-view input{display:block;width:100%;margin:0 0 14px;padding:8px 10px}
@@ -205,7 +211,7 @@ html[data-theme]{
 <body>
 <aside class="sidebar" aria-label="작업 공간">
   <div class="nav-area"><div class="side-label">내 캔버스 <span class="side-actions"><button id="newFolder" aria-label="새 폴더" title="새 폴더"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM12 11v5m-2.500-2.500h5"/></svg></button><button id="newCanvas" aria-label="새 캔버스" title="새 캔버스">＋</button></span></div><nav aria-label="캔버스 선택"></nav></div>
-  <div class="sidebar-bottom"><button id="folder" aria-label="원본 폴더 연결" disabled><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span id="folderLabel">원본 폴더</span></button><button id="themeButton" aria-label="테마 바꾸기" title="테마 바꾸기"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.400 0 2-1 2-2 0-1.500-1-2-1-3.200 0-1 .8-1.800 1.800-1.800H17a4 4 0 0 0 4-4c0-4-4-7-9-7Z"/><circle cx="7.500" cy="11" r="1"/><circle cx="10" cy="7.500" r="1"/><circle cx="15" cy="7.500" r="1"/></svg><span>테마</span></button><div id="updateNotice" class="update-notice" role="status" hidden><strong id="updateTitle"></strong><p id="updateText"></p><button id="updateApply" type="button"></button></div><details class="storage"><summary>저장 및 백업</summary><div><button id="updateToggle" hidden></button><button id="export">백업 파일 내보내기</button><button id="openBackups" hidden>자동 백업 폴더 열기</button><button id="import">백업에서 복원</button><button id="renameCanvas">현재 캔버스 이름 변경</button><button id="archiveCanvas">현재 캔버스 휴지통으로</button><button id="canvasTrash">캔버스 휴지통</button><button id="exportCanvas">현재 캔버스 내보내기 (.canvas)</button></div></details></div>
+  <div class="sidebar-bottom"><button id="folder" aria-label="원본 폴더 연결" disabled><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span id="folderLabel">원본 폴더</span></button><button id="settingsButton" aria-label="설정" title="설정"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg><span>설정</span></button><div id="updateNotice" class="update-notice" role="status" hidden><strong id="updateTitle"></strong><p id="updateText"></p><button id="updateApply" type="button"></button></div><details class="storage"><summary>캔버스 관리</summary><div><button id="renameCanvas">현재 캔버스 이름 변경</button><button id="archiveCanvas">현재 캔버스 휴지통으로</button><button id="canvasTrash">캔버스 휴지통</button><button id="exportCanvas">현재 캔버스 내보내기 (.canvas)</button></div></details></div>
   <input type="file" id="backup" accept=".json,application/json" hidden>
 </aside>
 <main>
@@ -243,7 +249,7 @@ html[data-theme]{
 <label id="linkRow">링크 주소<input id="link" type="url" placeholder="https://…"><small>YouTube·Vimeo 및 HTTPS MP4·WebM 링크를 지원해요.</small></label><div id="inkRow" hidden><label><span id="inkLabel">손글씨</span> <small>마우스, 터치 또는 펜으로 직접 써보세요.</small></label><canvas id="ink" width="960" height="420" aria-label="손글씨 입력 영역"></canvas><button type="button" id="clearInk">손글씨 지우기</button></div>
 <p id="error" role="alert"></p>
 <div class="actions"><button type="button" id="delete">삭제</button><div><button type="button" id="cancel">취소</button><button class="primary" id="save">저장</button></div></div>
-</form></dialog><dialog id="assetView" class="asset-view"><button id="closeAsset">닫기</button><div id="assetContent"></div></dialog><dialog id="askView" class="ask-view" aria-labelledby="askText"><p id="askText"></p><input id="askInput" maxlength="80" aria-labelledby="askText"><div class="ask-actions"><button id="askCancel" type="button">취소</button><button id="askOk" class="primary" type="button">확인</button></div></dialog><dialog id="themeView"><h2>테마</h2><p>누르면 바로 바뀌고, 다음에 켤 때도 유지됩니다. 내 항목의 색은 그대로입니다.</p><div id="themeGrid" class="theme-grid"></div><div class="theme-foot"><button id="closeTheme" type="button">닫기</button></div></dialog><dialog id="moveView"><form id="moveForm" method="dialog"><h2>폴더로 이동</h2><p id="moveName"></p><label>이동할 곳<select id="moveTarget"></select></label><div class="actions"><span></span><div><button type="button" id="moveCancel">취소</button><button class="primary" id="moveConfirm">이동</button></div></div></form></dialog><dialog id="trashView"><h2>캔버스 휴지통</h2><p>복원하면 내용과 배치가 함께 돌아옵니다. 영구 삭제는 되돌릴 수 없어요.</p><ul id="trashList" class="trash-list"></ul><div class="trash-foot"><button id="emptyTrash" class="trash-danger">휴지통 비우기</button><button id="closeTrash">닫기</button></div></dialog><dialog id="storyView"><h2>컷 순서</h2><p id="storyTotal"></p><ol id="storyList" class="story-list"></ol><button id="closeStory" type="button">닫기</button></dialog>
+</form></dialog><dialog id="assetView" class="asset-view"><button id="closeAsset">닫기</button><div id="assetContent"></div></dialog><dialog id="askView" class="ask-view" aria-labelledby="askText"><p id="askText"></p><input id="askInput" maxlength="80" aria-labelledby="askText"><div class="ask-actions"><button id="askCancel" type="button">취소</button><button id="askOk" class="primary" type="button">확인</button></div></dialog><dialog id="settingsView" class="settings-view" aria-labelledby="settingsTitle"><h2 id="settingsTitle">설정</h2><section id="settingsUpdate" class="settings-section" hidden><h3>업데이트</h3><div class="settings-card"><strong id="settingsVersion">모아</strong><p id="updateStatus">새 버전이 나오면 받아 두고 알려 드려요.</p><div class="settings-row"><button id="updateCheck" type="button">업데이트 확인</button><button id="settingsApply" class="primary" type="button" hidden></button></div></div><label class="settings-check"><input id="updateAuto" type="checkbox" checked>자동 업데이트</label><button id="releaseNotes" class="settings-link" type="button">릴리스 노트 보기 ↗</button></section><section class="settings-section"><h3>테마</h3><p>누르면 바로 바뀌고, 다음에 켤 때도 유지됩니다. 내 항목의 색은 그대로입니다.</p><div id="themeGrid" class="theme-grid"></div></section><section class="settings-section"><h3>백업</h3><p id="backupNote" hidden>켜고 끌 때 내용이 바뀌었으면 자동으로 백업하고, 최근 30개를 남깁니다.</p><div class="settings-row"><button id="export" type="button">백업 파일 내보내기</button><button id="import" type="button">백업에서 복원</button><button id="openBackups" type="button" hidden>자동 백업 폴더 열기</button></div></section><div class="theme-foot"><button id="closeSettings" type="button">닫기</button></div></dialog><dialog id="moveView"><form id="moveForm" method="dialog"><h2>폴더로 이동</h2><p id="moveName"></p><label>이동할 곳<select id="moveTarget"></select></label><div class="actions"><span></span><div><button type="button" id="moveCancel">취소</button><button class="primary" id="moveConfirm">이동</button></div></div></form></dialog><dialog id="trashView"><h2>캔버스 휴지통</h2><p>복원하면 내용과 배치가 함께 돌아옵니다. 영구 삭제는 되돌릴 수 없어요.</p><ul id="trashList" class="trash-list"></ul><div class="trash-foot"><button id="emptyTrash" class="trash-danger">휴지통 비우기</button><button id="closeTrash">닫기</button></div></dialog><dialog id="storyView"><h2>컷 순서</h2><p id="storyTotal"></p><ol id="storyList" class="story-list"></ol><button id="closeStory" type="button">닫기</button></dialog>
 <script>
 'use strict';
 const el=id=>document.getElementById(id);
@@ -589,7 +595,7 @@ async function moaHostBackup(closing){
  }catch(error){console.error('자동 백업 실패',error)}
  finally{if(closing)hostView?.postMessage('backup-done')}
 }
-if(hostFolder){el('openBackups').hidden=false;el('openBackups').onclick=()=>hostView.postMessage('open-backups')}
+if(hostFolder){el('backupNote').hidden=false;el('openBackups').hidden=false;el('openBackups').onclick=()=>hostView.postMessage('open-backups')}
 let folder=null,draftFile=null,draftAsset=null,inkLines=[],freeInk=null,assetUrl='',draftPdf='';
 const pdfUrls=new Set();
 const pdfPattern=/^data:application\/pdf;base64,[a-z0-9+/=]+$/i;
@@ -1811,28 +1817,46 @@ function paintThemes(){
    swatch.style.background=canvasColor;side.style.background=panel;spot.style.background=accent;
    swatch.append(side,spot);option.append(swatch,make('span',label));option.onclick=()=>setTheme(id);grid.append(option);
  }
- grid.querySelector('[aria-pressed=true]').focus();
 }
-el('themeButton').onclick=()=>{el('themeView').showModal();paintThemes()};
-el('closeTheme').onclick=()=>el('themeView').close();
-// 자동 업데이트. 새 화면을 받아 두면 사이드바에 알린다. 누르면 바로, 아니면 다음에 켤 때 바뀐다.
-let updateState='';
+// 설정 창: 업데이트, 테마, 백업
+el('settingsButton').onclick=()=>{paintThemes();el('settingsView').showModal()};
+el('closeSettings').onclick=()=>el('settingsView').close();
+// 자동 업데이트. 새 화면을 받아 두면 사이드바와 설정 창에 알린다. 누르면 바로, 아니면 다음에 켤 때 바뀐다.
+let updateState='',hostVersion='',checkTimer=0;
+function moaInfo(version){hostVersion=version;el('settingsVersion').textContent='모아 '+version}
 function moaUpdate(state,version){
  updateState=state;const ready=state==='ready';el('updateNotice').hidden=false;
  el('updateTitle').textContent='모아 '+version;
  el('updateText').textContent=ready?'새 버전을 받아 두었어요. 지금 적용하면 화면만 새로 고쳐지고, 설치 파일을 다시 실행할 필요가 없습니다.':'이번 버전은 프로그램도 바뀌어 설치 파일을 받아야 해요. 위에 덮어 설치하면 작업은 그대로 남습니다.';
  el('updateApply').textContent=ready?'지금 적용 · 수정사항 반영':'설치 파일 받기';
  el('updateApply').title=ready?'누르지 않으면 다음에 켤 때 적용됩니다.':'다운로드 페이지를 엽니다.';
+ const apply=el('settingsApply');apply.hidden=false;apply.textContent=el('updateApply').textContent;
+ finishCheck(ready?'새 버전 '+version+'을 받아 두었어요. 지금 적용하면 설치 없이 바로 바뀝니다.':'새 버전 '+version+'은 설치 파일로 설치해야 해요.');
 }
-function paintUpdateToggle(on){el('updateToggle').textContent='자동 업데이트: '+(on?'켜짐':'꺼짐')}
+function finishCheck(text){clearTimeout(checkTimer);el('updateCheck').disabled=false;el('updateStatus').textContent=text}
+// 설정 창의 업데이트 확인 결과. 새 버전이면 moaUpdate 로 알린다.
+function moaUpdateChecked(state,version){
+ if(state==='ready'||state==='installer'){moaUpdate(state,version);return}
+ finishCheck(state==='latest'?'최신 버전을 쓰고 있어요.':'확인하지 못했어요. 인터넷 연결을 확인하고 다시 시도해 주세요.');
+}
 if(hostView){
+ el('settingsUpdate').hidden=false;
  let on=true;try{on=localStorage.getItem('moa-auto-update')!=='off'}catch{}
- el('updateToggle').hidden=false;paintUpdateToggle(on);
- el('updateToggle').onclick=()=>{
-   on=!on;try{localStorage.setItem('moa-auto-update',on?'on':'off')}catch{}
-   paintUpdateToggle(on);if(!on)el('updateNotice').hidden=true;hostView.postMessage(on?'update-on':'update-off');
+ el('updateAuto').checked=on;
+ el('updateAuto').onchange=()=>{
+   on=el('updateAuto').checked;try{localStorage.setItem('moa-auto-update',on?'on':'off')}catch{}
+   if(!on)el('updateNotice').hidden=true;hostView.postMessage(on?'update-on':'update-off');
  };
- el('updateApply').onclick=()=>hostView.postMessage(updateState==='ready'?'update-apply':'update-page');
+ const applyUpdate=()=>hostView.postMessage(updateState==='ready'?'update-apply':'update-page');
+ el('updateApply').onclick=applyUpdate;el('settingsApply').onclick=applyUpdate;
+ el('releaseNotes').onclick=()=>hostView.postMessage('update-page');
+ el('updateCheck').onclick=()=>{
+   el('updateCheck').disabled=true;el('updateStatus').textContent='확인하는 중…';clearTimeout(checkTimer);
+   // 1.4.4 이전 프로그램은 확인 요청을 모르므로, 자동 업데이트를 다시 켜서 확인하게 하고 잠시 기다린다
+   if(hostVersion){hostView.postMessage('update-check');checkTimer=setTimeout(()=>moaUpdateChecked('error',''),100000)}
+   else{hostView.postMessage('update-on');checkTimer=setTimeout(()=>{finishCheck('새 버전을 찾지 못했어요.');if(!on)hostView.postMessage('update-off')},15000)}
+ };
+ hostView.postMessage('info');
  if(on)hostView.postMessage('update-on');
 }
 function shelfSummary(card){
