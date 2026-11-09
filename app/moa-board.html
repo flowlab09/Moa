@@ -1390,7 +1390,7 @@ const freeStyle={color:inkColors[0],stroke:3,fill:false,fontSize:20,markerColor:
 function isLineLike(type){return type==='line'||type==='arrow'||type==='marker'}
 // 가로에서 6° 안쪽이면 가로로 맞춘다. 글줄에 반듯하게 칠하기 위해서다.
 function snapLevel(a,b){const dx=b[0]-a[0];return dx&&Math.abs(Math.atan2(b[1]-a[1],Math.abs(dx)))<=Math.PI/30?[b[0],a[1]]:b}
-const toolHints={text:'클릭한 곳에 글을 씁니다',rect:'끌어서 사각형을 그립니다',ellipse:'끌어서 원을 그립니다',diamond:'끌어서 마름모를 그립니다',line:'끌어서 선을 긋습니다',arrow:'끌어서 화살표를 긋습니다',marker:'끌어서 곧게 칠합니다 · 거의 가로면 반듯하게 맞춥니다',pen:'캔버스에 바로 씁니다 · Esc로 끝내기',eraser:'끌어서 선·도형·손글씨를 지웁니다'};
+const toolHints={text:'클릭한 곳에 글을 씁니다 · Enter 줄바꿈 · 바깥 클릭이나 Ctrl+Enter로 마침',rect:'끌어서 사각형을 그립니다',ellipse:'끌어서 원을 그립니다',diamond:'끌어서 마름모를 그립니다',line:'끌어서 선을 긋습니다',arrow:'끌어서 화살표를 긋습니다',marker:'끌어서 곧게 칠합니다 · 거의 가로면 반듯하게 맞춥니다',pen:'캔버스에 바로 씁니다 · Esc로 끝내기',eraser:'끌어서 선·도형·손글씨를 지웁니다'};
 const toolButtons={select:'toolSelect',text:'toolText',rect:'toolRect',ellipse:'toolEllipse',diamond:'toolDiamond',line:'toolLine',arrow:'toolArrow',marker:'toolMarker',pen:'pen',eraser:'toolEraser'};
 let tool='select',spaceDown=false,toastTimer=0,historyOff=false,writeSeq=0,historyQueue=Promise.resolve(),clip=[],clipMark='';
 const histories=new Map();
@@ -1619,7 +1619,8 @@ function editFree(card,at){
  };
  input.onkeydown=event=>{
    if(event.key==='Escape'){event.preventDefault();finish(false)}
-   if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing){event.preventDefault();finish(true)}
+   // Enter 는 줄바꿈. 마치려면 바깥을 누르거나 Ctrl+Enter.
+   if(event.key==='Enter'&&(event.ctrlKey||event.metaKey)&&!event.isComposing){event.preventDefault();finish(true)}
  };
  input.onblur=()=>{if(!gripHeld)finish(true)};
  el('empty').hidden=true;
@@ -1818,6 +1819,20 @@ function paintThemes(){
    swatch.append(side,spot);option.append(swatch,make('span',label));option.onclick=()=>setTheme(id);grid.append(option);
  }
 }
+// 창 바깥(어두운 배경)을 누르면 닫는다. 창 안에서 누르고 바깥에서 뗀 경우는 닫지 않는다.
+// 카드 편집 창은 쓰던 내용을 잃지 않도록 제외한다. 열린 메뉴도 바깥을 누르면 닫는다.
+let pressedOutside=null;
+function outsideOf(box,event){const r=box.getBoundingClientRect();return event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom}
+document.addEventListener('pointerdown',event=>{
+ const target=event.target;
+ pressedOutside=target instanceof HTMLDialogElement&&target.open&&outsideOf(target,event)?target:null;
+ const menu=document.querySelector('.storage[open]');if(menu&&!menu.contains(target))menu.open=false;
+},true);
+document.addEventListener('click',event=>{
+ const view=pressedOutside;pressedOutside=null;
+ if(!view||event.target!==view||view.id==='editor'||!outsideOf(view,event))return;
+ if(view.dispatchEvent(new Event('cancel',{cancelable:true})))view.close();
+});
 // 설정 창: 업데이트, 테마, 백업
 el('settingsButton').onclick=()=>{paintThemes();el('settingsView').showModal()};
 el('closeSettings').onclick=()=>el('settingsView').close();
